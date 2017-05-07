@@ -21,7 +21,8 @@ class Cam(object):
         self.online_switch = True
         self.firstFrame = None
         self.turn = threading.Lock()
-        self.save_folder = 'sec-imgs'
+        #self.save_folder = 'sec-imgs'
+        self.save_folder = Camara.save_folder()
         #self.save_folder = '/run/user/1000/gvfs/smb-share:server=192.168.ec-imgs' 
 
         #object_process = multiprocessing.Process(target=self.run_motion_detection)
@@ -119,45 +120,42 @@ class Cam(object):
                             self.firstFrame = gray
                             continue
 
+                        
                         # compute the absolute difference between the current frame and first frame
                         frameDelta = cv2.absdiff(self.firstFrame, gray)
                         #                                  25 normal
-                        thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
-
-                        # dilate the thresholded image to fill in holes, then find contours on thresholded image
-                        thresh = cv2.dilate(thresh, None, iterations=2)
-
-                        # apply mostion mask
-                        res = cv2.bitwise_and(frame, frame, mask = thresh)
-
-                        #cv2.imshow(hoststr+'mask',thresh)
-                        #cv2.imshow(hoststr,frame)
+                        thresh = cv2.threshold(frameDelta, 65, 255, cv2.THRESH_BINARY)[1]
 
                         #(cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
                         _,cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
                         if cnts != []:
                             try:
-                                # saves it as a contour image
-                                #frame = self.cvt2Contour(frame)
-                                #cv2.imwrite(self.save_folder+'/{}/{}.png'.format(self.cam_name, datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
-                                #cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
-                                # write the frameDelta
-                                cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), res)
-                                #print('saved')
+                                #start_time = time.time()
+                                for cnt in cnts:
+                                    if cv2.contourArea(cnt) >= 2:
+                                        cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
+                                        break
 
                             except Exception as e:
                                 print(e)
                                 print("saved FAIL")
 
                             #time.sleep(1)
+                            ### Motion anabled detection
                             self.firstFrame = None
                             continue
+                        ### continuous rec
+#                        self.firstFrame = None
 
                 except Exception as e:
                     # another check
                     print('second exception broken',e)
                     break
+                
+                def compute_motion(first_frame, sec_frame):
+                    pass
+
 
 def stop_threads():
     global run
@@ -172,9 +170,6 @@ def stop_threads():
 stop_thread = threading.Thread(target=stop_threads)
 stop_thread.start()
 
-#camA = Cam("Living Room", "192.168.0.106:8080")
-#camB = Cam("Bedroom", "192.168.1.144:8080")
-#camC = Cam("House", "192.168.1.144:8080")
 cams_dict = Camara.InStore()
 
 # creates and runs recording on each object
