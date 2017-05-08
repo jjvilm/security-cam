@@ -62,8 +62,11 @@ class Camara_obj(object):
                 return
 
         bytes=''
+        frame_counter = 0
+        elapsed_time = 0
+        text_overlay = 0
+        start_time = time.time()
         while 1:
-            start_time = datetime.datetime.now().strftime('%s')
             try:
                 bytes+=stream.read(1024)
                 a = bytes.find('\xff\xd8')
@@ -75,6 +78,9 @@ class Camara_obj(object):
                     #i = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8),cv2.CV_LOAD_IMAGE_COLOR)
                     # cv2 version 3
                     i = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8),cv2.IMREAD_COLOR)
+
+                    font = cv2.FONT_HERSHEY_SIMPLEX
+                    cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(255,255,255),2,cv2.LINE_AA)
                     # crop top of image
 #                    i = i[25::,:] # crop from x, y , w, h 
 
@@ -110,6 +116,21 @@ class Camara_obj(object):
                     #cv2.imshow(self.cam_name,res)
                     # shows difference in binary
                     #cv2.imshow(self.cam_name+'thresh', frameDelta)
+                    # tracks 1 second
+                    if elapsed_time >= 1.0:
+                        # sets frames to overlay variable
+                        #text_overlay = frame_counter
+                        text_overlay = frame_counter / (time.time() - start_time)
+                        frame_counter = 0
+                        start_time = time.time()
+                        elapsed_time = 0
+
+                    ### keep track of elapsed time
+                    end_time = start_time - time.time()
+                    elapsed_time -= end_time
+
+                    frame_counter += 1
+
                     cv2.imshow(self.cam_name, i)
 
                     #resets initial image
@@ -145,7 +166,7 @@ def main():
 #        except Exception as e:
 #            print("Not a number\n{}".format(e))
 #
-    answer = 1
+    answer = 0
     if answer == 'All':
         cams['All']()
     else:
