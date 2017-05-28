@@ -9,8 +9,6 @@ import os
 import threading
 import Camara
 #import multiprocessing
-
-
 run = True
 
 class Cam(object):
@@ -29,7 +27,6 @@ class Cam(object):
         object_process = threading.Thread(target=self.run_motion_detection)
         object_process.start()
         
-
     def cvt2Contour(self,i):
         imgray = cv2.cvtColor(i, cv2.COLOR_BGR2GRAY)
 
@@ -156,15 +153,12 @@ class Cam(object):
                 def compute_motion(first_frame, sec_frame):
                     pass
 
-
 def stop_threads():
     global run
     # run stops all while loops, ending threads
     x = raw_input("Press ENTER to stop\n\n")
     run = False
     print("STOPING ALL THREADS!")
-
-
 
 # asks to press enter to stop threads
 stop_thread = threading.Thread(target=stop_threads)
