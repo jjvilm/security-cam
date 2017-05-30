@@ -121,7 +121,7 @@ class Cam(object):
                         # compute the absolute difference between the current frame and first frame
                         frameDelta = cv2.absdiff(self.firstFrame, gray)
                         #                                  25 normal
-                        thresh = cv2.threshold(frameDelta, 65, 255, cv2.THRESH_BINARY)[1]
+                        thresh = cv2.threshold(frameDelta, 50, 255, cv2.THRESH_BINARY)[1]
 
                         #(cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
                         _,cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
@@ -130,7 +130,7 @@ class Cam(object):
                             try:
                                 #start_time = time.time()
                                 for cnt in cnts:
-                                    if cv2.contourArea(cnt) >= 2:
+                                    if cv2.contourArea(cnt) >= 120:
                                         cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
                                         break
 
