@@ -108,9 +108,7 @@ class Camara_obj(object):
                 break
 
 def view_all():
-    cam1 = Camara_obj('Bedroom',"192.168.1.131:8080")
-    cam2 = Camara_obj('House',"192.168.1.144:8080")
-    cam3 = Camara_obj('Living Room',"192.168.1.129:8080")
+    pass
 
 def main():
     cams = Camara.InStore()
