@@ -122,9 +122,9 @@ class Cam(object):
                         frameDelta = cv2.absdiff(self.firstFrame, gray)
                         #                                  25 normal
                         thresh = cv2.threshold(frameDelta, 50, 255, cv2.THRESH_BINARY)[1]
-
-                        #(cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-                        _,cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+			# works in rpi3 debian 
+                        (cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+                        #_,cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
                         if cnts != []:
                             try:
