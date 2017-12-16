@@ -77,7 +77,7 @@ class Camara_obj(object):
                     i = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8),cv2.IMREAD_COLOR)
 
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(255,255,255),2,cv2.LINE_AA)
+                    #cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(255,255,255),2,cv2.LINE_AA)
                     if elapsed_time >= 1.0:
                         # sets frames to overlay variable
                         text_overlay = frame_counter / (time.time() - start_time)
