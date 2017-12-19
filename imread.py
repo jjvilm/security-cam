@@ -174,6 +174,8 @@ def main():
             #print('Frame_selected = {}'.format(frame_selected))
 
             for n_current_frame,i in enumerate(imgs_list[frame_selected:]):
+                # i is the image_file_name 
+                print(i, frame_selected, n_current_frame)
                 # reverts back to original with same frame
                 if n_current_frame < frame_selected:
                     continue
