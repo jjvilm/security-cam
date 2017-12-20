@@ -120,15 +120,16 @@ class Rff():
 
     def frame_by_frame(self, current_frame_n):
         imgs_list = self.get_img_list() # string names
-        once = True
+        # switch to dipslay image after frame number is set
+        display = True
         # initialize frame to avoid crash when frame > max frames or < current frame
         frame = None
         while True:
-            if once:
+            if display:
                 image_file_path = imgs_list[current_frame_n]
-                print(image_file_path, current_frame_n, self.t_n_frames)
+                print("{}/{}".format(image_file_path, current_frame_n, self.t_n_frames))
                 frame = cv2.imread(image_file_path)
-                once = False
+                display = False
             # resizes 400% on frame by frame
             frame = self.resize(frame)
             cv2.imshow("Frames", frame)
@@ -140,12 +141,12 @@ class Rff():
                 # next frame if available
                 if current_frame_n  < self.t_n_frames:
                     current_frame_n += 1
-                    once = True
+                    display = True
                     continue
                 # loop back to begiining
                 else:
                     current_frame_n = 1
-                    once = True
+                    display = True
                     continue
 
             # backward
@@ -155,7 +156,7 @@ class Rff():
                     # go to end from beginning
                     if current_frame_n == 0:
                         current_frame_n = self.t_n_frames
-                    once = True
+                    display = True
                     continue
 
             if key == ord('/'):
@@ -180,7 +181,6 @@ class Rff():
         # Speed slider
         #cv2.createTrackbar('Speed','Frames-Control',0,10, set_frame_speed)
 
-#        def core_loop():
         imgs_list = self.get_img_list()
         print("Total Frames: {}".format(self.t_n_frames))
         self.display_controls()
@@ -191,12 +191,11 @@ class Rff():
                 self.frame_selected = 1
             #print('Frame_selected = {}'.format(frame_selected))
 
-            #for n_current_frame,i in enumerate(imgs_list[self.frame_selected:]):
             for n_current_frame,i in enumerate(imgs_list):
                 # returns to current frame when returning from frame by frame funciton
                 if n_current_frame < self.frame_selected:
                     continue
-                print(n_current_frame, self.t_n_frames)
+                print(n_current_frame)
                 # i is the image_file_name 
                 #print(i, self.frame_selected, n_current_frame)
                 # reverts back to original with same frame
@@ -234,11 +233,11 @@ class Rff():
                 # Increases speed
                 if key == ord('>'):
                     if self.frame_speed != 0 and self.frame_speed >= .005:
-                        self.frame_speed -= .005
+                        self.frame_speed -= .05
                     print('Frame speed changed to {}'.format(self.frame_speed))
                 # Decrases frame play
                 if key == ord('<'):
-                    self.frame_speed += .005
+                    self.frame_speed += .05
                     print('Frame speed changed to {}'.format(self.frame_speed))
                 # Normal Speed
                 if key == ord('/'):
