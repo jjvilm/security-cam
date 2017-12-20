@@ -13,7 +13,6 @@ class Rff():
     frame_speed = 0.30 # .3 normilizes time
     # global variable for max frames
     t_n_frames = 0 
-    frame_selected = 0
     new_frame_from_slider = False
     frame_selected = 0
     # exit switch for empty directory
@@ -81,9 +80,6 @@ class Rff():
         self.t_n_frames = len(imgs_list) - 1 # first entry is empty
         return imgs_list
 
-#new
-############################################################
-#old
 
     def frame_selection(self):
         while True:
@@ -172,6 +168,7 @@ class Rff():
         return resized
 
     def main(self):
+        
         # does not run main if folder is empty size is <= 0
         if self.stop:
             return
@@ -186,6 +183,7 @@ class Rff():
 #        def core_loop():
         imgs_list = self.get_img_list()
         print("Total Frames: {}".format(self.t_n_frames))
+        self.display_controls()
         raw_input()
 
         while True:
@@ -193,13 +191,15 @@ class Rff():
                 self.frame_selected = 1
             #print('Frame_selected = {}'.format(frame_selected))
 
-            for n_current_frame,i in enumerate(imgs_list[self.frame_selected:]):
+            #for n_current_frame,i in enumerate(imgs_list[self.frame_selected:]):
+            for n_current_frame,i in enumerate(imgs_list):
+                # returns to current frame when returning from frame by frame funciton
+                if n_current_frame < self.frame_selected:
+                    continue
                 print(n_current_frame, self.t_n_frames)
                 # i is the image_file_name 
                 #print(i, self.frame_selected, n_current_frame)
                 # reverts back to original with same frame
-                if n_current_frame < self.frame_selected:
-                    continue
                # Outputs frame to terminal
                 #print("Curr: {} Sel: {}".format(n_current_frame, self.frame_selected))
                 #print("Frame:{} ".format(n_current_frame))
@@ -246,8 +246,9 @@ class Rff():
                     print('Frame speed changed to {}'.format(self.frame_speed))
                 # Frame selection prompt
                 if key == ord('f'): # ************
-                    print("Max frame == {}".format(len(imgs_list)))
+                    print("Max frame == {}".format(len(imgs_list) -1))
                     self.frame_selected = self.frame_selection()
+                    raw_input("Press Enter to display and continue")
                     break
                 # Frame by frame paused
                 if key == ord('.'):
@@ -275,6 +276,9 @@ class Rff():
                 print('Looping...')
                 self.frame_selected = 0
 
+    def display_controls(self):
+        print("[-] & [=] Incrase frames by 200 and decrease by 100\n[.] FramebyFrame\n[/] exit FramebyFrame\n[q] Quit")
+
 #        while 1:
 #            try:
 #                core_loop()
@@ -285,6 +289,7 @@ class Rff():
 #                self.stop = True
 #                return
 #                continue
+
 #    
 
 if __name__ == "__main__":
