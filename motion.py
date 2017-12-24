@@ -19,9 +19,7 @@ class Cam(object):
         self.online_switch = True
         self.firstFrame = None
         self.turn = threading.Lock()
-        #self.save_folder = 'sec-imgs'
         self.save_folder = Camara.save_folder()
-        #self.save_folder = '/run/user/1000/gvfs/smb-share:server=192.168.ec-imgs' 
 
         #object_process = multiprocessing.Process(target=self.run_motion_detection)
         object_process = threading.Thread(target=self.run_motion_detection)
@@ -131,6 +129,7 @@ class Cam(object):
                                 #start_time = time.time()
                                 for cnt in cnts:
                                     if cv2.contourArea(cnt) >= 120:
+					#print("Saving")
                                         cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
                                         break
 

@@ -1,6 +1,6 @@
-#save_folder = '/run/media/jj/SILVERSQR/sec-imgs/'
 #save_folder = 'sec-imgs'
-save_folder = '/home/pi/usb2/Juan/Media/sec.cam/'
+# 		no leading slash after folder name
+save_folder = '/home/pi/usb2/Juan/Media/sec.cam'
 
 
 

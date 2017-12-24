@@ -47,7 +47,7 @@ def get_dir_size(start_path):
     return False
 
 #folder_name = raw_input('Folder name: ')
-folder = 'sec-imgs'
+folder = '/home/pi/usb2/Juan/Media/sec.cam'
 # exit if directory is empty
 if get_dir_size(folder):
     exit_switch = True
