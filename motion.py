@@ -18,10 +18,9 @@ class Cam(object):
         self.host = host
         self.online_switch = True
         self.firstFrame = None
-        self.turn = threading.Lock()
+        #self.turn = threading.Lock()
         #self.save_folder = 'sec-imgs'
         self.save_folder = Camara.save_folder()
-        #self.save_folder = '/run/user/1000/gvfs/smb-share:server=192.168.ec-imgs' 
 
         #object_process = multiprocessing.Process(target=self.run_motion_detection)
         object_process = threading.Thread(target=self.run_motion_detection)
@@ -113,6 +112,7 @@ class Cam(object):
                         gray = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2GRAY)
                         #gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
+                        # sets first frame to compare against another frame for motion
                         if self.firstFrame is None:
                             self.firstFrame = gray
                             continue

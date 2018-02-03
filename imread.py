@@ -3,10 +3,11 @@ import cv2
 import os
 import time
 import commands
+from Camara import save_folder
 
 class Rff():
     # Folder name used to read images from 
-    img_folder = 'sec-imgs'
+    img_folder = save_folder()
     # switch to iterate to equal frame n 
     switch = False
     #  controls speed of frames
@@ -74,8 +75,8 @@ class Rff():
         if self.img_folder not in os.getcwd():
             os.chdir(self.img_folder)
 
-        # sorted list by creation time 
-        imgs_list = commands.getstatusoutput("ls -ltr | awk '{print $9}'")
+        # sorted list by creation time           -t for time
+        imgs_list = commands.getstatusoutput("ls -l | awk '{print $9}'")
         imgs_list = imgs_list[1].split('\n')
         self.t_n_frames = len(imgs_list) - 1 # first entry is empty
         return imgs_list
@@ -195,7 +196,7 @@ class Rff():
                 # returns to current frame when returning from frame by frame funciton
                 if n_current_frame < self.frame_selected:
                     continue
-                print(n_current_frame)
+                #print(n_current_frame)
                 # i is the image_file_name 
                 #print(i, self.frame_selected, n_current_frame)
                 # reverts back to original with same frame
@@ -278,18 +279,6 @@ class Rff():
     def display_controls(self):
         print("[-] & [=] Incrase frames by 200 and decrease by 100\n[.] FramebyFrame\n[/] exit FramebyFrame\n[q] Quit")
 
-#        while 1:
-#            try:
-#                core_loop()
-#            
-#            except Exception as e:
-#                print('major exception',e)
-#
-#                self.stop = True
-#                return
-#                continue
-
-#    
 
 if __name__ == "__main__":
     view = Rff()
