@@ -85,10 +85,9 @@ class Camara_obj(object):
                         start_time = time.time()
                         elapsed_time = 0
 
-                    ### keep track of elapsed time
+                    ### keep track of elapsed time for frame counter
                     end_time = start_time - time.time()
                     elapsed_time -= end_time
-
                     frame_counter += 1
 
                     cv2.imshow(self.cam_name, i)

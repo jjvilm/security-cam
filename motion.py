@@ -131,7 +131,7 @@ class Cam(object):
                                 #start_time = time.time()
                                 for cnt in cnts:
                                     if cv2.contourArea(cnt) >= 120:
-                                        cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
+                                        #cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
                                         break
 
                             except Exception as e:
