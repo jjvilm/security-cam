@@ -37,15 +37,52 @@ class Camara_obj(object):
         resized = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
         return resized
 
-    def show_difference(self,original_image, difference_res):
-        thresh = cv2.threshold(difference_res, 20, 255, cv2.THRESH_BINARY)[1]
-        # dilate image to "see" more
-        thresh = cv2.dilate(thresh, None, iterations=6)
+    def display_motion(self, frame):
+        # crop top text off frame off
+        frame_cropped = frame[25::,:] # Crop from x, y, w, h -> 100, 200, 300, 400
 
-        # mask applied to image
-        res = cv2.bitwise_and(original_image , original_image, mask = thresh)
-        return res
+        gray = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2GRAY)
+        #gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
+        # sets first frame to compare against another frame for motion
+        if self.first_image is None:
+            self.first_image = gray
+            return frame, 0, 0 
+        #
+
+
+        # compute the absolute difference between the current frame and first frame
+        frameDelta = cv2.absdiff(self.first_image, gray)
+
+        # Must set new first_image
+        self.first_image = gray
+
+
+        #                                  25 normal
+        thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
+        return frame_cropped, frameDelta, thresh
+
+        #(cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        _,cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+
+        if cnts != []:
+            #start_time = time.time()
+            for cnt in cnts:
+                if cv2.contourArea(cnt) >= 120:
+                    pass
+                        
+#        thresh = cv2.threshold(self.first_image, 20, 255, cv2.THRESH_BINARY)[1]
+#        # dilate image to "see" more
+#        thresh = cv2.dilate(thresh, None, iterations=6)
+#
+#        # mask applied to image
+#        res = cv2.bitwise_and(original_image , original_image, mask = thresh)
+#
+#        #resets initial image
+#        #self.first_image = None
+#
+#        return res
+#
     def view(self):
         while 1:
             try:
@@ -68,16 +105,19 @@ class Camara_obj(object):
         start_time = time.time()
         while 1:
             try:
+                # Decoding stream
                 bytes+=stream.read(1024)
                 a = bytes.find('\xff\xd8')
                 b = bytes.find('\xff\xd9')
                 if a!=-1 and b!=-1:
                     jpg = bytes[a:b+2]
                     bytes= bytes[b+2:]
+                    # image aquisition
                     i = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8),cv2.IMREAD_COLOR)
-
+                    # settings for FPS counter
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(128,128,0),2,cv2.LINE_AA)
+                    # sets text over image
+                    #cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(128,128,0),2,cv2.LINE_AA)
                     if elapsed_time >= 1.0:
                         # sets frames to overlay variable
                         text_overlay = frame_counter / (time.time() - start_time)
@@ -90,10 +130,11 @@ class Camara_obj(object):
                     elapsed_time -= end_time
                     frame_counter += 1
 
+                    i, fd, t = self.display_motion(i)
                     cv2.imshow(self.cam_name, i)
+                    cv2.imshow('fd', fd)
+                    cv2.imshow('t', t)
 
-                    #resets initial image
-                    self.first_image = None
 
                     # press "q" to terminate program
                     key = cv2.waitKey(33) & 0xFF
