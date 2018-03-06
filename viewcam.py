@@ -20,6 +20,11 @@ class Camara_obj(object):
         self.cam_name = cam_name
         self.host = host
         self.first_image = None
+        # use to toggle shown frames on screen
+        self.showDelta = 0
+        self.showThresh = 0
+        self.contourAreaValue = 50
+        self.thresholdValue = 25
 
     def run_thread(self):
         with self.turn_lock:
@@ -71,7 +76,7 @@ class Camara_obj(object):
 
 
         #                                  25 normal
-        thresh = cv2.threshold(frameDelta, 50, 255, cv2.THRESH_BINARY)[1]
+        thresh = cv2.threshold(frameDelta, self.thresholdValue, 255, cv2.THRESH_BINARY)[1]
 
 
         #(cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
@@ -81,7 +86,7 @@ class Camara_obj(object):
             #start_time = time.time()
             for cnt in cnts:
                 #print(cv2.contourArea(cnt))
-                if cv2.contourArea(cnt) >= 120:
+                if cv2.contourArea(cnt) >= self.contourAreaValue:
                     # bound rect
                     x, y, w, h = cv2.boundingRect(cnt)
                     # draw contours
@@ -149,16 +154,37 @@ class Camara_obj(object):
 
                 # sets text over image
                 cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(128,128,0),2,cv2.LINE_AA)
+                # Displays original frame
                 cv2.imshow(self.cam_name, i)
-                #cv2.imshow('fd', fd)
-                #cv2.imshow('t', t)
+
+                # togglebles
+                if self.showDelta:
+                    cv2.imshow('Delta', fd)
+                if self.showThresh:
+                    cv2.imshow('Thresh', t)
 
 
                 # press "q" to terminate program
                 key = cv2.waitKey(33) & 0xFF
-
                 if key == ord('q'):
                     exit(0)
+
+                # toggles thresh image displayed
+                if key == ord('t'):
+                    if self.showThresh:
+                        self.showThresh = 0
+                        cv2.destroyWindow('Thresh')
+                    else:
+                        self.showThresh = 1
+
+                # toggles Delta image displayed
+                if key == ord('d'):
+                    if self.showDelta:
+                        self.showDelta = 0
+                        cv2.destroyWindow('Delta')
+                    else:
+                        self.showDelta = 1
+
 
 def view_all():
     pass
