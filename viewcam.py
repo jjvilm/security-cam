@@ -23,18 +23,16 @@ class Camara_obj(object):
         # use to toggle shown frames on screen
         self.showDelta = 0
         self.showThresh = 0
-        self.contourAreaValue = 50
-        self.thresholdValue = 25
+        self.showThreshErosion = 0
+        # settings 
+        self.contourAreaValue = 20
+        self.thresholdValue = 3
+        self.kernelValue = 1
 
     def run_thread(self):
         with self.turn_lock:
             cam_thread = threading.Thread(target=self.view)
             cam_thread.start()
-
-    def ping_cam():
-        # will bring up a back online cam
-        # after exception in self.view()
-        pass
 
     def resizeim(self,frame):
         r = float(size) / frame.shape[1]
@@ -46,8 +44,9 @@ class Camara_obj(object):
         """ should return 3 variables
             1st one should be the frame to dipslay, 
             2nd frameDelta image
-            3rd thresh image """
+            3rd thresh image, 4th threshErosion """
         # crop top text off frame off
+        # to avoid motion detection from time stamp
         frame_cropped = frame[25::,:] # Crop from x, y, w, h -> 100, 200, 300, 400
 
         gray = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2GRAY)
@@ -58,13 +57,13 @@ class Camara_obj(object):
         if self.first_image is None:
             self.first_image = gray
             # 
-            return frame, 0, 0 
+            return frame, 0, 0, 0
 
         # checks both images are of same size
         if self.first_image.shape != gray.shape:
             self.first_image = gray
             # return current frame to stop from comparing 2 diff size images
-            return frame, 0, 0
+            return frame, 0, 0, 0
 
 
 
@@ -77,26 +76,33 @@ class Camara_obj(object):
 
         #                                  25 normal
         thresh = cv2.threshold(frameDelta, self.thresholdValue, 255, cv2.THRESH_BINARY)[1]
+        # erode thresh to clean up white noise
+        kernel = np.ones((self.kernelValue,self.kernelValue),np.uint8)
+        ###### DEBUGING # change back to original image
+        threshErosion = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+        threshErosion = cv2.dilate(threshErosion, kernel, iterations=1)
+        ###### end debug
+
 
 
         #(cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-        _,cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        _,cnts,_ = cv2.findContours(threshErosion.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
         if cnts != []:
             #start_time = time.time()
             for cnt in cnts:
                 #print(cv2.contourArea(cnt))
                 if cv2.contourArea(cnt) >= self.contourAreaValue:
+                    print(cv2.contourArea(cnt))
                     # bound rect
                     x, y, w, h = cv2.boundingRect(cnt)
                     # draw contours
                     cv2.rectangle(frame_cropped, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-        return frame_cropped, frameDelta, thresh
+        return frame_cropped, frameDelta, thresh, threshErosion
                         
 #        thresh = cv2.threshold(self.first_image, 20, 255, cv2.THRESH_BINARY)[1]
 #        # dilate image to "see" more
-#        thresh = cv2.dilate(thresh, None, iterations=6)
 #
 #        # mask applied to image
 #        res = cv2.bitwise_and(original_image , original_image, mask = thresh)
@@ -150,18 +156,22 @@ class Camara_obj(object):
                 elapsed_time -= end_time
                 frame_counter += 1
 
-                i, fd, t = self.display_motion(i)
+                # returns applied filters
+                # original image, frameDelta, Threshold images
+                i, fd, t, threshErosion = self.display_motion(i)
 
                 # sets text over image
                 cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(128,128,0),2,cv2.LINE_AA)
                 # Displays original frame
                 cv2.imshow(self.cam_name, i)
 
-                # togglebles
+                # toggleble display
                 if self.showDelta:
                     cv2.imshow('Delta', fd)
                 if self.showThresh:
                     cv2.imshow('Thresh', t)
+                if self.showThreshErosion:
+                    cv2.imshow('Thresh Erosion', threshErosion)
 
 
                 # press "q" to terminate program
@@ -184,8 +194,43 @@ class Camara_obj(object):
                         cv2.destroyWindow('Delta')
                     else:
                         self.showDelta = 1
+                        
+                # toggles threshErosion image displayed
+                if key == ord('e'):
+                    if self.showThreshErosion:
+                        self.showThreshErosion = 0
+                        cv2.destroyWindow('Thresh Erosion')
+                    else:
+                        self.showThreshErosion = 1
 
+                # keys for Contour settings
+                if key == ord('='):
+                    self.contourAreaValue += 5
+                    print("Contour Area:{}".format(self.contourAreaValue))
+                if key == ord('-'):
+                    self.contourAreaValue -= 5
+                    print("Contour Area:{}".format(self.contourAreaValue))
 
+                # keys for thresh settings
+                if key == ord(']'):
+                    self.thresholdValue += 1
+                    print("Thresh:{}".format(self.thresholdValue))
+                if key == ord('['):
+                    self.thresholdValue -= 1
+                    print("Thresh:{}".format(self.thresholdValue))
+
+                # keys for kernel
+                if key == ord('i'):
+                    self.kernelValue += 1
+                    print("Kernel:{}".format(self.kernelValue))
+                if key == ord('k'):
+                    # negative dimensions not allowed
+                    if self.kernelValue != 0:
+                        self.kernelValue -= 1
+                        print("Kernel:{}".format(self.kernelValue))
+
+                if key == ord('p'):
+                    print("\nContour Area:{}\nThreshold:{}\nKernel:{}".format(self.contourAreaValue, self.thresholdValue,self.kernelValue))
 def view_all():
     pass
 
