@@ -21,8 +21,10 @@ class Rff():
 
     def __init__(self):
         # sets t_n_frames 
-        self.get_dir_size(self.img_folder)
-
+        #self.get_dir_size(self.img_folder)
+        # keeps track of the current frame loaded on display 
+        self.current_frame_counter = 0
+        self.loaded_frame_list = []
     
     def get_dir_size(self, start_path):
         def empty_dir():
@@ -76,10 +78,13 @@ class Rff():
             os.chdir(self.img_folder)
 
         # sorted list by creation time           -t for time
-        imgs_list = commands.getstatusoutput("ls -l | awk '{print $9}'")
-        imgs_list = imgs_list[1].split('\n')
-        self.t_n_frames = len(imgs_list) - 1 # first entry is empty
-        return imgs_list
+        print("\nsortint Files...")
+        loaded_frame_list = commands.getstatusoutput("ls -l | awk '{print $9}'")
+        print("spliting by line")
+        loaded_frame_list = loaded_frame_list[1].split('\n')
+        self.t_n_frames = len(loaded_frame_list) - 1 # first entry is empty
+        print('returning list../n')
+        return loaded_frame_list
 
 
     def frame_selection(self):
@@ -120,19 +125,18 @@ class Rff():
         self.frame_speed = speeds[slider_speed]
 
     def frame_by_frame(self, current_frame_n):
-        imgs_list = self.get_img_list() # string names
         # switch to dipslay image after frame number is set
         display = True
         # initialize frame to avoid crash when frame > max frames or < current frame
         frame = None
         while True:
             if display:
-                image_file_path = imgs_list[current_frame_n]
+                image_file_path = self.loaded_frame_list[current_frame_n]
                 print("{}/{}".format(image_file_path, current_frame_n, self.t_n_frames))
                 frame = cv2.imread(image_file_path)
                 display = False
             # resizes 400% on frame by frame
-            frame = self.resize(frame)
+            #frame = self.resize(frame)
             cv2.imshow("Frames", frame)
 
             key = cv2.waitKey(33) & 0xFF
@@ -178,11 +182,13 @@ class Rff():
         # window for slider
         #cv2.namedWindow('Frames-Control')
         # Slider for frame tuning
-        #cv2.createTrackbar('Frames:', 'Frames-Control', 0, len(imgs_list)-1,frame_slider)
+        #cv2.createTrackbar('Frames:', 'Frames-Control', 0, len(loaded_frame_list)-1,frame_slider)
         # Speed slider
         #cv2.createTrackbar('Speed','Frames-Control',0,10, set_frame_speed)
 
-        imgs_list = self.get_img_list()
+        print("Loading Frames into a list...")
+        self.loaded_frame_list = self.get_img_list()
+        print("Frames loaded!\n")
         print("Total Frames: {}".format(self.t_n_frames))
         self.display_controls()
         raw_input()
@@ -192,7 +198,8 @@ class Rff():
                 self.frame_selected = 1
             #print('Frame_selected = {}'.format(frame_selected))
 
-            for n_current_frame,i in enumerate(imgs_list):
+            for n_current_frame,i in enumerate(self.loaded_frame_list):
+                self.current_frame_counter = n_current_frame
                 # returns to current frame when returning from frame by frame funciton
                 if n_current_frame < self.frame_selected:
                     continue
@@ -205,9 +212,12 @@ class Rff():
                 #print("Frame:{} ".format(n_current_frame))
 
                 # skips first empty file
-                if i == '':
+                if i == '' and self.t_n_frames >= 1:
                     print("Frame:{} is EMPTY!".format(n_current_frame))
                     continue
+                if self.t_n_frames <= 0:
+                    print("Folder is empty, exiting")
+                    return
                 # if slider turns on switch then skip till new frame
                 if self.switch:
                     if n_current_frame == self.frame_selected:
@@ -223,8 +233,11 @@ class Rff():
                     print(e,'\nBAD Frame')
                     continue
 
-                key = cv2.waitKey(33) & 0xFF
+                
 
+                print(self.current_frame_counter) 
+
+                key = cv2.waitKey(33) & 0xFF
                 if key == ord('q'):
                     self.stop = 1
                     exit(0)
@@ -246,7 +259,7 @@ class Rff():
                     print('Frame speed changed to {}'.format(self.frame_speed))
                 # Frame selection prompt
                 if key == ord('f'): # ************
-                    print("Max frame == {}".format(len(imgs_list) -1))
+                    print("Max frame == {}".format(len(self.loaded_frame_list) -1))
                     self.frame_selected = self.frame_selection()
                     raw_input("Press Enter to display and continue")
                     break

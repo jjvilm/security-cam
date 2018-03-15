@@ -21,12 +21,13 @@ class Camara_obj(object):
         self.host = host
         self.first_image = None
         # use to toggle shown frames on screen
+        self.applyFilters = 0
         self.showDelta = 0
         self.showThresh = 0
         self.showThreshErosion = 0
         # settings 
-        self.contourAreaValue = 20
-        self.thresholdValue = 3
+        self.contourAreaValue = 25
+        self.thresholdValue = 35
         self.kernelValue = 1
 
     def run_thread(self):
@@ -77,16 +78,16 @@ class Camara_obj(object):
         #                                  25 normal
         thresh = cv2.threshold(frameDelta, self.thresholdValue, 255, cv2.THRESH_BINARY)[1]
         # erode thresh to clean up white noise
-        kernel = np.ones((self.kernelValue,self.kernelValue),np.uint8)
+        #kernel = np.ones((self.kernelValue,self.kernelValue),np.uint8)
         ###### DEBUGING # change back to original image
-        threshErosion = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-        threshErosion = cv2.dilate(threshErosion, kernel, iterations=1)
+        #threshErosion = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+        #threshErosion = cv2.dilate(threshErosion, kernel, iterations=1)
         ###### end debug
 
 
 
-        #(cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-        _,cnts,_ = cv2.findContours(threshErosion.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        #_,cnts,_ = cv2.findContours(threshErosion.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        _,cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
         if cnts != []:
             #start_time = time.time()
@@ -99,7 +100,7 @@ class Camara_obj(object):
                     # draw contours
                     cv2.rectangle(frame_cropped, (x, y), (x+w, y+h), (0, 255, 0), 2)
 
-        return frame_cropped, frameDelta, thresh, threshErosion
+        return frame_cropped, frameDelta, thresh, 0#threshErosion
                         
 #        thresh = cv2.threshold(self.first_image, 20, 255, cv2.THRESH_BINARY)[1]
 #        # dilate image to "see" more
@@ -156,22 +157,24 @@ class Camara_obj(object):
                 elapsed_time -= end_time
                 frame_counter += 1
 
-                # returns applied filters
-                # original image, frameDelta, Threshold images
-                i, fd, t, threshErosion = self.display_motion(i)
+                if self.applyFilters:
+                    # returns applied filters
+                    # original image, frameDelta, Threshold images
+                    i, fd, t, threshErosion = self.display_motion(i)
 
                 # sets text over image
                 cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(128,128,0),2,cv2.LINE_AA)
                 # Displays original frame
                 cv2.imshow(self.cam_name, i)
 
-                # toggleble display
-                if self.showDelta:
-                    cv2.imshow('Delta', fd)
-                if self.showThresh:
-                    cv2.imshow('Thresh', t)
-                if self.showThreshErosion:
-                    cv2.imshow('Thresh Erosion', threshErosion)
+                # toggleble filters display
+                if self.applyFilters:
+                    if self.showDelta:
+                        cv2.imshow('Delta', fd)
+                    if self.showThresh:
+                        cv2.imshow('Thresh', t)
+                    if self.showThreshErosion:
+                        cv2.imshow('Thresh Erosion', threshErosion)
 
 
                 # press "q" to terminate program
@@ -183,7 +186,10 @@ class Camara_obj(object):
                 if key == ord('t'):
                     if self.showThresh:
                         self.showThresh = 0
-                        cv2.destroyWindow('Thresh')
+                        try:
+                            cv2.destroyWindow('Thresh')
+                        except:
+                            pass
                     else:
                         self.showThresh = 1
 
@@ -191,7 +197,10 @@ class Camara_obj(object):
                 if key == ord('d'):
                     if self.showDelta:
                         self.showDelta = 0
-                        cv2.destroyWindow('Delta')
+                        try:
+                            cv2.destroyWindow('Delta')
+                        except:
+                            pass
                     else:
                         self.showDelta = 1
                         
@@ -199,7 +208,10 @@ class Camara_obj(object):
                 if key == ord('e'):
                     if self.showThreshErosion:
                         self.showThreshErosion = 0
-                        cv2.destroyWindow('Thresh Erosion')
+                        try:
+                            cv2.destroyWindow('Thresh Erosion')
+                        except: 
+                            pass
                     else:
                         self.showThreshErosion = 1
 
@@ -231,6 +243,21 @@ class Camara_obj(object):
 
                 if key == ord('p'):
                     print("\nContour Area:{}\nThreshold:{}\nKernel:{}".format(self.contourAreaValue, self.thresholdValue,self.kernelValue))
+
+                if key == ord('f'):
+                    if self.applyFilters == 0:
+                        self.applyFilters = 1
+                        print("Filters {}".format(self.applyFilters))
+                    else:
+                        self.applyFilters = 0
+                        print("Filters {}".format(self.applyFilters))
+                       
+
+
+
+
+
+
 def view_all():
     pass
 
