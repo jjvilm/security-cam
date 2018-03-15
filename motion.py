@@ -20,6 +20,8 @@ class Cam(object):
         self.firstFrame = None
         self.turn = threading.Lock()
         self.save_folder = Camara.save_folder()
+	self.contour_area_value = 50
+	self.frame_threshold_value = 60
 
         #object_process = multiprocessing.Process(target=self.run_motion_detection)
         object_process = threading.Thread(target=self.run_motion_detection)
@@ -123,7 +125,7 @@ class Cam(object):
                         # compute the absolute difference between the current frame and first frame
                         frameDelta = cv2.absdiff(self.firstFrame, gray)
                         #                                  25 normal
-                        thresh = cv2.threshold(frameDelta, 40, 255, cv2.THRESH_BINARY)[1]
+                        thresh = cv2.threshold(frameDelta, self.frame_threshold_value, 255, cv2.THRESH_BINARY)[1]
 			# works in rpi3 debian 
                         (cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
                         #_,cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
@@ -132,7 +134,7 @@ class Cam(object):
                             try:
                                 #start_time = time.time()
                                 for cnt in cnts:
-                                    if cv2.contourArea(cnt) >= 120:
+                                    if cv2.contourArea(cnt) >= self.contour_area_value:
 					#print("Saving")
                                         cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
                                         break
@@ -159,6 +161,7 @@ def stop_threads():
     x = raw_input("Press ENTER to stop\n\n")
     run = False
     print("STOPING ALL THREADS!")
+    sys.exit()
 
 # asks to press enter to stop threads
 stop_thread = threading.Thread(target=stop_threads)
