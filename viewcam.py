@@ -94,7 +94,7 @@ class Camara_obj(object):
             for cnt in cnts:
                 #print(cv2.contourArea(cnt))
                 if cv2.contourArea(cnt) >= self.contourAreaValue:
-                    print(cv2.contourArea(cnt))
+                    #print(cv2.contourArea(cnt))
                     # bound rect
                     x, y, w, h = cv2.boundingRect(cnt)
                     # draw contours
@@ -112,7 +112,22 @@ class Camara_obj(object):
 #        #self.first_image = None
 #
 #        return res
-#
+    def findBrightness(self, frame):
+        try:
+            if frame == None:
+                return
+        except:
+            pass
+
+        # Convert to gray
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        values = []
+        for x in frame:
+            avg = sum(x) / len(x)
+            values.append(avg)
+        avg = sum(values) / len(values)
+        return avg
+
     def view(self):
         while 1:
             try:
@@ -235,6 +250,7 @@ class Camara_obj(object):
                 if key == ord('i'):
                     self.kernelValue += 1
                     print("Kernel:{}".format(self.kernelValue))
+
                 if key == ord('k'):
                     # negative dimensions not allowed
                     if self.kernelValue != 0:
@@ -251,6 +267,10 @@ class Camara_obj(object):
                     else:
                         self.applyFilters = 0
                         print("Filters {}".format(self.applyFilters))
+
+                # Prints brightness value of current single frame
+                if key == ord('b'):
+                    print("Frame Average Brightness:{}".format(self.findBrightness(i)))
                        
 
 

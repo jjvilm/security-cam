@@ -79,7 +79,11 @@ class Rff():
 
         # sorted list by creation time           -t for time
         print("\nsortint Files...")
+        start_time = time.time()
+        #loaded_frame_list = commands.getstatusoutput("ls -l | awk '{print $9}'")
         loaded_frame_list = commands.getstatusoutput("ls -l | awk '{print $9}'")
+        elapsed_time = time.time() - start_time
+        print("...Job took {} secs".format(elapsed_time))
         print("spliting by line")
         loaded_frame_list = loaded_frame_list[1].split('\n')
         self.t_n_frames = len(loaded_frame_list) - 1 # first entry is empty
