@@ -27,6 +27,22 @@ class Cam(object):
         object_process = threading.Thread(target=self.run_motion_detection)
         object_process.start()
         
+    def findBrightness(self, frame):
+	try: 
+	    if frame == None:
+		return
+	except:
+	    pass
+
+	 # Convert to gray
+	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	values = []
+	for x in frame:
+	    avg = sum(x) / len(x)
+	    values.append(avg)
+	avg = sum(values) / len(values)
+	return avg
+
     def cvt2Contour(self,i):
         imgray = cv2.cvtColor(i, cv2.COLOR_BGR2GRAY)
 
@@ -135,9 +151,11 @@ class Cam(object):
                                 #start_time = time.time()
                                 for cnt in cnts:
                                     if cv2.contourArea(cnt) >= self.contour_area_value:
-					#print("Saving")
-                                        cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
-                                        break
+					# gets all the black and white pixles and averages them to find brightness of frame
+					if self.findBrightness(frame) > 40:
+						# saves frame to storage 
+						cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
+						break
 
                             except Exception as e:
                                 print(e)
