@@ -98,7 +98,7 @@ class Camara_obj(object):
                     # bound rect
                     x, y, w, h = cv2.boundingRect(cnt)
                     # draw contours
-                    cv2.rectangle(frame_cropped, (x, y), (x+w, y+h), (0, 255, 0), 2)
+                    cv2.rectangle(frame_cropped, (x, y), (x+w, y+h), (0, 255, 0), 1)
 
         return frame_cropped, frameDelta, thresh, 0#threshErosion
                         

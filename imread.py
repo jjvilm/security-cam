@@ -25,6 +25,22 @@ class Rff():
         # keeps track of the current frame loaded on display 
         self.current_frame_counter = 0
         self.loaded_frame_list = []
+    def findBrightness(self, frame):
+        try:
+            if frame == None:
+                return
+        except:
+            pass
+
+        # Convert to gray
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        values = []
+        for x in frame:
+            avg = sum(x) / len(x)
+            values.append(avg)
+        avg = sum(values) / len(values)
+        return avg
+
     
     def get_dir_size(self, start_path):
         def empty_dir():
@@ -275,13 +291,15 @@ class Rff():
                     break
                 # skips by 100 frames
                 if key == ord('='):
-                    if (self.frame_selected+n_current_frame+200) < self.t_n_frames:
-                        self.frame_selected += 100 
+                        self.frame_selected = n_current_frame + 100 
                         break
                 # backwards by 100 frames
                 if key == ord('-'):
-                    self.frame_selected -= 100 
+                    self.frame_selected = n_current_frame - 100 
                     break
+
+                if key == ord('b'):
+                    print("Brightness value={}".format(self.findBrightness(frame)))
 
                 #print("Frame speed: {}".format(frame_speed))
                 time.sleep(self.frame_speed)
