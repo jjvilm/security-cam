@@ -154,7 +154,8 @@ class Cam(object):
 					# gets all the black and white pixles and averages them to find brightness of frame
 					if self.findBrightness(frame) > 40:
 						# saves frame to storage 
-						cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
+						#cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
+						cv2.imwrite(self.save_folder+'/{}.jpg'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
 						break
 
                             except Exception as e:
