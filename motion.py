@@ -9,6 +9,8 @@ import os
 import threading
 import Camara
 #import multiprocessing
+import requests
+
 run = True
 
 class Cam(object):
@@ -26,6 +28,23 @@ class Cam(object):
         #object_process = multiprocessing.Process(target=self.run_motion_detection)
         object_process = threading.Thread(target=self.run_motion_detection)
         object_process.start()
+
+    def auto_night_vision(self, brightness):
+	if brightness < 20:
+		self.night_vision()
+	if brightness > 175:
+		self.night_vision(False)
+	
+	
+
+    def night_vision(self, active=True):
+	session = requests.session()
+	path = '/settings/night_vision?set='
+	url = 'http://{}{}'.format(self.host, path)
+	if active:
+		session.get(url + 'on')
+	else:
+		session.get(url + 'off')
         
     def findBrightness(self, frame):
 	try: 
@@ -123,6 +142,7 @@ class Cam(object):
                         # crop top text off frame off
                         frame_cropped = frame[25::,:] # Crop from x, y, w, h -> 100, 200, 300, 400
 
+
                         gray = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2GRAY)
                         #gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
@@ -152,11 +172,16 @@ class Cam(object):
                                 for cnt in cnts:
                                     if cv2.contourArea(cnt) >= self.contour_area_value:
 					# gets all the black and white pixles and averages them to find brightness of frame
-					if self.findBrightness(frame) > 40:
+					frame_brightness = self.findBrightness(frame)
+					if frame_brightness > 40 and frame_brightness < 200:
 						# saves frame to storage 
 						#cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
 						cv2.imwrite(self.save_folder+'/{}.jpg'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
 						break
+					else:
+						self.auto_night_vision(frame_brightness)
+						break
+
 
                             except Exception as e:
                                 print(e)
