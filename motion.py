@@ -173,12 +173,14 @@ class Cam(object):
                                     if cv2.contourArea(cnt) >= self.contour_area_value:
 					# gets all the black and white pixles and averages them to find brightness of frame
 					frame_brightness = self.findBrightness(frame)
+					# keeps from saving 'dark' or 'white' frames
 					if frame_brightness > 40 and frame_brightness < 200:
 						# saves frame to storage 
 						#cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
 						cv2.imwrite(self.save_folder+'/{}.jpg'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
 						break
-					else:
+					# auto sets night vision on/off
+					elif frame_brightness < 20 or frame_brightness > 200:
 						self.auto_night_vision(frame_brightness)
 						break
 
