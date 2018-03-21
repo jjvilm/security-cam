@@ -26,6 +26,7 @@ class Cam(object):
         self.save_folder = Camara.save_folder()
         self.contour_area_value = 50
         self.frame_threshold_value = 60
+        self.save_format = '.jpg'
 
         #object_process = multiprocessing.Process(target=self.run_motion_detection)
         object_process = threading.Thread(target=self.run_motion_detection)
@@ -101,7 +102,7 @@ class Cam(object):
 
     def run_motion_detection(self):
         stream = None
-        frame_index = 0
+        #frame_index = 0
         # giant loop to keep connections alive w/o killing thread
         while run:
             if len(sys.argv)>1:
@@ -178,14 +179,15 @@ class Cam(object):
                                         # keeps from saving 'dark' or 'white' frames
                                         if frame_brightness > 100 and frame_brightness < 200:
                                             the_time = datetime.datetime.now()
-                                            TIME = the_time.strftime("%H:%M:%S:%f-%F")
-                                            DATE = the_time.strftime("%A")
-                                            save_path = self.save_folder + '/{}.jpg'.format(TIME)
+                                            TIME = the_time.strftime("%H:%M:%S:%f")
+                                            DAY = the_time.strftime("%A")
+                                            #DATE = the_time.strftime("%F")
+                                            save_path = self.save_folder + '/{}{}'.format(TIME, self.save_format)
                                             # saves frame to storage 
                                             #cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
                                             cv2.imwrite(save_path, frame)
-                                            self.frames_db.insert2db(frame_index, DATE, TIME, save_path) 
-                                            frame_index += 1
+                                            self.frames_db.insert2db(TIME + self.save_format, DAY) 
+                                            #frame_index += 1
 
                                             break
                                         # auto sets night vision on/off

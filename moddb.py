@@ -22,10 +22,8 @@ class db():
         try:
             # create table
             conn.execute('''CREATE TABLE frames
-                                (ID INT PRIMARY KEY NOT NULL,
-                                DATE    TEXT    NOT NULL, 
-                                TIME    TEXT    NOT NULL, 
-                                PATH    TEXT    NOT NULL)''')
+                                (FILE TEXT PRIMARY KEY NOT NULL,
+                                DAY    TEXT    NOT NULL)''')
             print("Table created successfully")
             # Save
             conn.commit()
@@ -33,12 +31,12 @@ class db():
         except Exception as e:
             print(e)
 
-    def insert2db(self, ID, DATE, TIME, PATH):
+    def insert2db(self, FILE, DAY):
         conn = self.connect()
         # DONT FORGET TO CLOSE
         try:
-            conn.execute('''INSERT INTO frames (ID, DATE, TIME, PATH) \
-                                    VALUES (?, ?, ?, ?)''', (ID, DATE, TIME, PATH,))
+            conn.execute('''INSERT INTO frames (FILE, DAY) \
+                                    VALUES (?, ?)''', (FILE, DAY,))
             conn.commit()
             conn.close()
         except Exception as e:
@@ -51,3 +49,4 @@ class db():
 
 if __name__ == '__main__':
     x = db()
+    x.insert2db('0343', 'wed')
