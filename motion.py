@@ -8,6 +8,7 @@ import time
 import os
 import threading
 import Camara
+import moddb 
 #import multiprocessing
 import requests
 
@@ -16,51 +17,51 @@ run = True
 class Cam(object):
     global run
     def __init__(self, cam_name, host):
+        self.frames_db = moddb.db()
         self.cam_name = cam_name 
         self.host = host
         self.online_switch = True
         self.firstFrame = None
         self.turn = threading.Lock()
         self.save_folder = Camara.save_folder()
-	self.contour_area_value = 50
-	self.frame_threshold_value = 60
+        self.contour_area_value = 50
+        self.frame_threshold_value = 60
 
         #object_process = multiprocessing.Process(target=self.run_motion_detection)
         object_process = threading.Thread(target=self.run_motion_detection)
         object_process.start()
 
     def auto_night_vision(self, brightness):
-	if brightness < 20:
-		self.night_vision()
-	if brightness > 175:
-		self.night_vision(False)
-	
+        if brightness < 20:
+            self.night_vision()
+        if brightness > 175:
+            self.night_vision(False)
 	
 
     def night_vision(self, active=True):
-	session = requests.session()
-	path = '/settings/night_vision?set='
-	url = 'http://{}{}'.format(self.host, path)
-	if active:
-		session.get(url + 'on')
-	else:
-		session.get(url + 'off')
-        
+        session = requests.session()
+        path = '/settings/night_vision?set='
+        url = 'http://{}{}'.format(self.host, path)
+        if active:
+            session.get(url + 'on')
+        else:
+            session.get(url + 'off')
+            
     def findBrightness(self, frame):
-	try: 
-	    if frame == None:
-		return
-	except:
-	    pass
+        try: 
+            if frame == None:
+                return
+        except:
+            pass
 
-	 # Convert to gray
-	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-	values = []
-	for x in frame:
-	    avg = sum(x) / len(x)
-	    values.append(avg)
-	avg = sum(values) / len(values)
-	return avg
+         # Convert to gray
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        values = []
+        for x in frame:
+            avg = sum(x) / len(x)
+            values.append(avg)
+        avg = sum(values) / len(values)
+        return avg
 
     def cvt2Contour(self,i):
         imgray = cv2.cvtColor(i, cv2.COLOR_BGR2GRAY)
@@ -174,13 +175,13 @@ class Cam(object):
 					# gets all the black and white pixles and averages them to find brightness of frame
 					frame_brightness = self.findBrightness(frame)
 					# keeps from saving 'dark' or 'white' frames
-					if frame_brightness > 40 and frame_brightness < 200:
+					if frame_brightness > 100 and frame_brightness < 200:
 						# saves frame to storage 
 						#cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
 						cv2.imwrite(self.save_folder+'/{}.jpg'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
 						break
 					# auto sets night vision on/off
-					elif frame_brightness < 20 or frame_brightness > 200:
+					elif frame_brightness < 40 or frame_brightness > 200:
 						self.auto_night_vision(frame_brightness)
 						break
 
@@ -218,3 +219,4 @@ cams_dict = Camara.InStore()
 # creates and runs recording on each object
 for key in cams_dict:
     Cam(key, cams_dict[key])
+    Cam.db_conn.close()

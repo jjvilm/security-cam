@@ -1,5 +1,6 @@
 # 		no leading slash after folder name
-save_folder = '/home/pi/usb/Juan/Media/sec.cam'
+save_folder_path = '/home/pi/usb/Juan/Media/sec.cam'
+db_file_name = '/frames.db'
 
 
 
@@ -16,7 +17,7 @@ def InStore():
 
     return camaras
 
-def save_folder(save_folder=save_folder):
+def save_folder(save_folder=save_folder_path):
     return save_folder
 
 
