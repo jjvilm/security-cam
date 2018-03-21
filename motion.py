@@ -101,6 +101,7 @@ class Cam(object):
 
     def run_motion_detection(self):
         stream = None
+        frame_index = 0
         # giant loop to keep connections alive w/o killing thread
         while run:
             if len(sys.argv)>1:
@@ -147,23 +148,23 @@ class Cam(object):
                         gray = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2GRAY)
                         #gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
-			# sets first image to compare motion to
+                        # sets first image to compare motion to
                         if self.firstFrame is None:
                             self.firstFrame = gray
                             continue
 
-			# resolves resolution changes
-			if self.firstFrame.shape != gray.shape:
-			    print('compared image size differ, reseting') 
-			    self.firstFrame = None
-			    break
+                        # resolves resolution changes
+                        if self.firstFrame.shape != gray.shape:
+                            print('compared image size differ, reseting') 
+                            self.firstFrame = None
+                            break
 
                         
                         # compute the absolute difference between the current frame and first frame
                         frameDelta = cv2.absdiff(self.firstFrame, gray)
                         #                                  25 normal
                         thresh = cv2.threshold(frameDelta, self.frame_threshold_value, 255, cv2.THRESH_BINARY)[1]
-			# works in rpi3 debian 
+                        # works in rpi3 debian 
                         (cnts, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
                         #_,cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
@@ -172,26 +173,29 @@ class Cam(object):
                                 #start_time = time.time()
                                 for cnt in cnts:
                                     if cv2.contourArea(cnt) >= self.contour_area_value:
-					# gets all the black and white pixles and averages them to find brightness of frame
-					frame_brightness = self.findBrightness(frame)
-					# keeps from saving 'dark' or 'white' frames
-					if frame_brightness > 100 and frame_brightness < 200:
-						# saves frame to storage 
-						#cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
-						cv2.imwrite(self.save_folder+'/{}.jpg'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
-						break
-					# auto sets night vision on/off
-					elif frame_brightness < 40 or frame_brightness > 200:
-						self.auto_night_vision(frame_brightness)
-						break
+                                        # gets all the black and white pixles and averages them to find brightness of frame
+                                        frame_brightness = self.findBrightness(frame)
+                                        # keeps from saving 'dark' or 'white' frames
+                                        if frame_brightness > 100 and frame_brightness < 200:
+                                            the_time = datetime.datetime.now()
+                                            TIME = the_time.strftime("%H:%M:%S:%f-%F")
+                                            DATE = the_time.strftime("%A")
+                                            save_path = self.save_folder + '/{}.jpg'.format(TIME)
+                                            # saves frame to storage 
+                                            #cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
+                                            cv2.imwrite(save_path, frame)
+                                            self.frames_db.insert2db(frame_index, DATE, TIME, save_path) 
+                                            frame_index += 1
 
-
+                                            break
+                                        # auto sets night vision on/off
+                                        elif frame_brightness < 10 or frame_brightness > 200:
+                                            self.auto_night_vision(frame_brightness)
+                                            break
                             except Exception as e:
                                 print(e)
                                 print("saved FAIL")
 
-                            #time.sleep(1)
-                            ### Motion anabled detection
                             self.firstFrame = None
                             continue
                         ### continuous rec
@@ -217,6 +221,6 @@ stop_thread.start()
 cams_dict = Camara.InStore()
 
 # creates and runs recording on each object
-for key in cams_dict:
-    Cam(key, cams_dict[key])
-    Cam.db_conn.close()
+for key in cams_dict.keys():
+    cam_obj = Cam(key, cams_dict[key])
+
