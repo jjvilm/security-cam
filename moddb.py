@@ -22,10 +22,8 @@ class db():
         try:
             # create table
             conn.execute('''CREATE TABLE frames
-                                (ID INT PRIMARY KEY NOT NULL,
-                                DATE    TEXT    NOT NULL, 
-                                TIME    TEXT    NOT NULL, 
-                                PATH    TEXT    NOT NULL)''')
+                                (TIME   TEXT     PRIMARY KEY NOT NULL,
+                                DAY    TEXT    NOT NULL)''')
             print("Table created successfully")
             # Save
             conn.commit()
@@ -38,8 +36,8 @@ class db():
         conn = self.connect()
         # DONT FORGET TO CLOSE
         try:
-            conn.execute('''INSERT INTO frames (ID, DATE, TIME, PATH) \
-                                    VALUES (?, ?, ?, ?)''', (ID, DATE, TIME, PATH,))
+            conn.execute('''INSERT INTO frames (TIME, DAY) \
+                                    VALUES (?, ?)''', (TIME, DAY,))
             conn.commit()
             conn.close()
         except Exception as e:
@@ -51,7 +49,7 @@ class db():
         cur.execute('SELECT * FROM frames')
         rows = cur.fetchall()
         for i, row in enumerate(rows):
-            yield i, row[3]
+            yield i, row[0]
 
 
 

@@ -143,12 +143,10 @@ class Rff():
         while True:
             if display:
                 file_path = self.i_yield_path(current_frame_n)
-                file_name = file_path.rfind('/')
-                file_name = file_path[file_name:]
-                i = save_folder + file_name
+                i = save_folder + '/' + file_path
 
                 frame = cv2.imread(i)
-                print(current_frame_n, str(file_name))
+                print(current_frame_n, str(file_path))
                 display = False
             # resizes 400% on frame by frame
             #frame = self.resize(frame)
@@ -213,9 +211,7 @@ class Rff():
 
             #for n_current_frame,img_path in enumerate(self.loaded_frame_list):
             for n_current_frame,img_path in self.paths.yield_paths():
-                path = img_path.rfind('/')
-                path = img_path[path:]
-                i = save_folder + path
+                i = save_folder + '/' + img_path
 
 
                 self.current_frame_counter = n_current_frame
