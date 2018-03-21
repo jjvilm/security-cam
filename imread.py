@@ -3,11 +3,13 @@ import cv2
 import os
 import time
 import commands
-from Camara import save_folder
+import moddb
+from Camara import save_folder_path as save_folder
+
 
 class Rff():
     # Folder name used to read images from 
-    img_folder = save_folder()
+    img_folder = save_folder
     # switch to iterate to equal frame n 
     switch = False
     #  controls speed of frames
@@ -25,6 +27,8 @@ class Rff():
         # keeps track of the current frame loaded on display 
         self.current_frame_counter = 0
         self.loaded_frame_list = []
+        self.paths = moddb.db()
+
     def findBrightness(self, frame):
         try:
             if frame == None:
@@ -87,25 +91,6 @@ class Rff():
 
         return False
 
-    def get_img_list(self):
-        """ Get file name of img e.g.: 17:29:00:483516-2017-12-19.png """
-        # Assumes run from script folder
-        if self.img_folder not in os.getcwd():
-            os.chdir(self.img_folder)
-
-        # sorted list by creation time           -t for time
-        print("\nsortint Files...")
-        start_time = time.time()
-        #loaded_frame_list = commands.getstatusoutput("ls -l | awk '{print $9}'")
-        loaded_frame_list = commands.getstatusoutput("ls -l | awk '{print $9}'")
-        elapsed_time = time.time() - start_time
-        print("...Job took {} secs".format(elapsed_time))
-        print("spliting by line")
-        loaded_frame_list = loaded_frame_list[1].split('\n')
-        self.t_n_frames = len(loaded_frame_list) - 1 # first entry is empty
-        print('returning list../n')
-        return loaded_frame_list
-
 
     def frame_selection(self):
         while True:
@@ -143,6 +128,12 @@ class Rff():
                 10: 1
                 }
         self.frame_speed = speeds[slider_speed]
+    def i_yield_path(self, frame_index):
+        """Returns len of rows """
+        for i, path in self.paths.yield_paths():
+            if i == frame_index:
+                return path
+        return i
 
     def frame_by_frame(self, current_frame_n):
         # switch to dipslay image after frame number is set
@@ -151,9 +142,13 @@ class Rff():
         frame = None
         while True:
             if display:
-                image_file_path = self.loaded_frame_list[current_frame_n]
-                print("{}/{}".format(image_file_path, current_frame_n, self.t_n_frames))
-                frame = cv2.imread(image_file_path)
+                file_path = self.i_yield_path(current_frame_n)
+                file_name = file_path.rfind('/')
+                file_name = file_path[file_name:]
+                i = save_folder + file_name
+
+                frame = cv2.imread(i)
+                print(current_frame_n, str(file_name))
                 display = False
             # resizes 400% on frame by frame
             #frame = self.resize(frame)
@@ -194,7 +189,8 @@ class Rff():
         return resized
 
     def main(self):
-        
+        self.t_n_frames = self.i_yield_path('')
+        print(self.t_n_frames)
         # does not run main if folder is empty size is <= 0
         if self.stop:
             return
@@ -206,9 +202,6 @@ class Rff():
         # Speed slider
         #cv2.createTrackbar('Speed','Frames-Control',0,10, set_frame_speed)
 
-        print("Loading Frames into a list...")
-        self.loaded_frame_list = self.get_img_list()
-        print("Frames loaded!\n")
         print("Total Frames: {}".format(self.t_n_frames))
         self.display_controls()
         raw_input()
@@ -218,7 +211,13 @@ class Rff():
                 self.frame_selected = 1
             #print('Frame_selected = {}'.format(frame_selected))
 
-            for n_current_frame,i in enumerate(self.loaded_frame_list):
+            #for n_current_frame,img_path in enumerate(self.loaded_frame_list):
+            for n_current_frame,img_path in self.paths.yield_paths():
+                path = img_path.rfind('/')
+                path = img_path[path:]
+                i = save_folder + path
+
+
                 self.current_frame_counter = n_current_frame
                 # returns to current frame when returning from frame by frame funciton
                 if n_current_frame < self.frame_selected:
@@ -231,13 +230,6 @@ class Rff():
                 #print("Curr: {} Sel: {}".format(n_current_frame, self.frame_selected))
                 #print("Frame:{} ".format(n_current_frame))
 
-                # skips first empty file
-                if i == '' and self.t_n_frames >= 1:
-                    print("Frame:{} is EMPTY!".format(n_current_frame))
-                    continue
-                if self.t_n_frames <= 0:
-                    print("Folder is empty, exiting")
-                    return
                 # if slider turns on switch then skip till new frame
                 if self.switch:
                     if n_current_frame == self.frame_selected:
@@ -314,8 +306,24 @@ class Rff():
     def display_controls(self):
         print("[-] & [=] Incrase frames by 200 and decrease by 100\n[.] FramebyFrame\n[/] exit FramebyFrame\n[q] Quit")
 
+    def database_view(self):
+        import moddb
+        paths = moddb.db()
+        for i,img in paths.yield_paths():
+            print(i)
+            img = str(img)
+            path = img.rfind('/')
+            path = img[path:]
+            path = save_folder + path
+
+            img = cv2.imread(path)
+            cv2.imshow('img', img)
+            cv2.waitKey(0)
+
+
 
 if __name__ == "__main__":
     view = Rff()
     view.main()
+    #view.database_view()
 

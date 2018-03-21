@@ -1,5 +1,6 @@
-save_folder_path = 'sec-imgs'
-#save_folder_path = '/run/user/1000/gvfs/sftp:host=192.168.0.112,user=pi/home/pi/usb/Juan/Media/sec.cam'
+#save_folder_path = 'sec-imgs'
+save_folder_path = '/run/user/1000/gvfs/sftp:host=192.168.0.112,user=pi/home/pi/usb/Juan/Media/sec.cam'
+#save_folder_path = '/run/user/1000/gvfs/sftp:host=192.168.0.112,user=pi'
 db_file_name = '/frames.db'
 
 

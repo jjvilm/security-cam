@@ -32,6 +32,7 @@ class db():
             conn.close()
         except Exception as e:
             print(e)
+            conn.close()
 
     def insert2db(self, ID, DATE, TIME, PATH):
         conn = self.connect()
@@ -44,6 +45,13 @@ class db():
         except Exception as e:
             print(e)
 
+    def yield_paths(self):
+        conn = self.connect()
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM frames')
+        rows = cur.fetchall()
+        for i, row in enumerate(rows):
+            yield i, row[3]
 
 
 
@@ -51,3 +59,5 @@ class db():
 
 if __name__ == '__main__':
     x = db()
+    for path in x.yield_paths():
+        print(path)
