@@ -8,26 +8,17 @@ from Camara import save_folder_path as save_folder
 
 
 class Rff():
-    # Folder name used to read images from 
-    img_folder = save_folder
-    # switch to iterate to equal frame n 
-    switch = False
-    #  controls speed of frames
-    frame_speed = 0.30 # .3 normilizes time
-    # global variable for max frames
-    frame_selected = 0
-    # exit switch for empty directory
-    stop = False
-    # for GUI slider to function
-    new_frame_from_slider = False
-
     def __init__(self):
         # keeps track of the current frame loaded on display 
         self.current_frame_counter = 0
-        self.loaded_frame_list = []
         self.paths = moddb.db()
         # total number of frames
         self.t_n_frames = self.i_yield_path('')
+        self.frame_selected = 0
+        self.frame_speed = 0.30
+        # exit switch for empty directory
+        self.stop = False
+        self.new_frame_from_slider = None
 
     def findBrightness(self, frame):
         try:
@@ -45,52 +36,6 @@ class Rff():
         avg = sum(values) / len(values)
         return avg
 
-    
-    def get_dir_size(self, start_path):
-        def empty_dir():
-            # exit if directory is empty
-            if folder_size < 0:
-                self.stop = True
-
-
-            #creates above folder if it does not exist
-            if not os.path.exists(self.img_folder):
-                print('{} created!'.format(self.img_folder))
-                os.makedirs(self.img_folder)
-
-
-
-        self.new_frame_from_slider = False
-
-        total_size = 0
-        counter = 0 
-
-        for dirpath, dirnames, filenames in os.walk(start_path):
-            for f in filenames:
-                fp = os.path.join(dirpath, f)
-                total_size += os.path.getsize(fp)
-                counter += 1
-
-        if total_size <= 0:
-            self.stop = True
-            print("Folder empty!")
-            return True
-
-
-        folder_size_in_mb = (total_size/1024.0)/1024.0
-        folder_size_in_gb = ((total_size/1024.0)/1024.0) /1024.0
-        
-
-        # gb
-        if folder_size_in_mb >= 1024.0:
-            print("Size of directory: {:.2f}GB".format(folder_size_in_gb))
-        # MB
-        else:
-            print("Size of directory: {:.2f}MB".format(folder_size_in_mb))
-
-
-        return False
-
 
     def frame_selection(self):
         print("Max frame == {}".format(self.t_n_frames))
@@ -107,14 +52,13 @@ class Rff():
             except:
                 print("NOT AN INT\n")
 
-    def frame_slider(self, x):
-        c_frame = cv2.getTrackbarPos('Frames:', 'Frames-Control')
-        self.frame_selected = c_frame
-        self.new_frame_from_slider = True
-        self.switch = True
+    def frame_slider(self, *args, **kwargs):
+        self.frame_selected = cv2.getTrackbarPos('Frames:', 'Controls')
+        if not self.new_frame_from_slider:
+            self.new_frame_from_slider = True
 
-    def set_frame_speed(self, x):
-        slider_speed = cv2.getTrackbarPos('Speed','Frames-Control')
+    def set_frame_speed(self, *args, **kwargs):
+        slider_speed = cv2.getTrackbarPos('Speed','Controls')
         speeds = {
                 0: 0,
                 1: .005,
@@ -188,62 +132,47 @@ class Rff():
         return resized
 
     def main(self):
+        font = font = cv2.FONT_HERSHEY_SIMPLEX
         print(self.t_n_frames)
         # does not run main if folder is empty size is <= 0
         if self.stop:
             return
 
         # window for slider
-        #cv2.namedWindow('Frames-Control')
+        cv2.namedWindow('Controls')
         # Slider for frame tuning
-        #cv2.createTrackbar('Frames:', 'Frames-Control', 0, len(loaded_frame_list)-1,frame_slider)
+        cv2.createTrackbar('Frames:', 'Controls', 0, self.t_n_frames, self.frame_slider)
         # Speed slider
-        #cv2.createTrackbar('Speed','Frames-Control',0,10, set_frame_speed)
+        cv2.createTrackbar('Speed','Controls',0,10, self.set_frame_speed)
 
         print("Total Frames: {}".format(self.t_n_frames))
         self.display_controls()
-        raw_input()
 
         while True:
             if self.frame_selected < 0:
                 self.frame_selected = 1
-            #print('Frame_selected = {}'.format(frame_selected))
 
-            #for n_current_frame,img_path in enumerate(self.loaded_frame_list):
-            for n_current_frame,img_path in self.paths.yield_paths():
+            for loop_frame_n, img_path in self.paths.yield_paths():
+                if self.new_frame_from_slider:
+                    self.new_frame_from_slider = False
+                    break
                 i = save_folder + '/' + img_path
+                self.current_frame_counter = loop_frame_n
 
-
-                self.current_frame_counter = n_current_frame
                 # returns to current frame when returning from frame by frame funciton
-                if n_current_frame < self.frame_selected:
+                if loop_frame_n < self.frame_selected:
                     continue
-                #print(n_current_frame)
-                # i is the image_file_name 
-                #print(i, self.frame_selected, n_current_frame)
-                # reverts back to original with same frame
-               # Outputs frame to terminal
-                #print("Curr: {} Sel: {}".format(n_current_frame, self.frame_selected))
-                #print("Frame:{} ".format(n_current_frame))
-
-                # if slider turns on switch then skip till new frame
-                if self.switch:
-                    if n_current_frame == self.frame_selected:
-                        self.switch = False
-                    else:
-                        continue
                 # Sometimes imshow crashes on this line while 
                 # reading image file
                 try:
+                    # loads image from file path
                     frame = cv2.imread(i, -1)
+                    #adding frame number as overlay
+                    cv2.putText(frame,'{}'.format(int(loop_frame_n)),(5,50), font, 0.5,(0,255,0),1,cv2.LINE_AA)
                     cv2.imshow("Frames",frame)
                 except Exception as e:
                     print(e,'\nBAD Frame')
                     continue
-
-                
-
-                print(self.current_frame_counter) 
 
                 key = cv2.waitKey(33) & 0xFF
                 if key == ord('q'):
@@ -271,28 +200,24 @@ class Rff():
                     break
                 # Frame by frame paused
                 if key == ord('.'):
-                    #self.frame_selected = self.frame_by_frame(self.frame_selected)
                     # goes into a loop that pauses frames
-                    self.frame_selected = self.frame_by_frame(n_current_frame)
+                    self.frame_selected = self.frame_by_frame(loop_frame_n)
                     break
                 # skips by 100 frames
                 if key == ord('='):
-                        self.frame_selected = n_current_frame + 100 
+                        self.frame_selected = loop_frame_n + 100 
                         break
                 # backwards by 100 frames
                 if key == ord('-'):
-                    self.frame_selected = n_current_frame - 100 
+                    self.frame_selected = loop_frame_n - 100 
                     break
-
+                # prints brightness value of frame to terminal
                 if key == ord('b'):
                     print("Brightness value={}".format(self.findBrightness(frame)))
 
                 #print("Frame speed: {}".format(frame_speed))
                 time.sleep(self.frame_speed)
 
-                if self.new_frame_from_slider:
-                    #new_frame_from_slider = False
-                    break
             else:
                 # frames end here so restart loop
                 print('Looping...')

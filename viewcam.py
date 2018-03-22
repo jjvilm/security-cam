@@ -178,7 +178,7 @@ class Camara_obj(object):
                     i, fd, t, threshErosion = self.display_motion(i)
 
                 # sets text over image
-                cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(128,128,0),2,cv2.LINE_AA)
+                cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(0,255,0),2,cv2.LINE_AA)
                 # Displays original frame
                 cv2.imshow(self.cam_name, i)
 
