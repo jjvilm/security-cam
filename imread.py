@@ -71,6 +71,7 @@ class Rff():
         self.frame_speed = speeds[slider_speed]
     def i_yield_path(self, frame_index):
         """Returns len of rows """
+        i = 0
         for i, path in self.paths.yield_paths():
             if i == frame_index:
                 return path
@@ -146,7 +147,7 @@ class Rff():
 
         while True:
             if self.frame_selected < 0:
-                self.frame_selected = 1
+                self.frame_selected = 0
 
             for loop_frame_n, img_path in self.paths.yield_paths():
                 # restarts count from 0 with new frame selected
@@ -221,7 +222,14 @@ class Rff():
             else:
                 # frames end here so restart loop
                 print('Looping...')
-                self.frame_selected = 0
+                if loop_frame_n == self.t_n_frames: 
+                    self.frame_selected = 0
+    def debug_func(self):
+        x = self.paths.yield_paths()
+
+        for y in x:
+            print(y)
+            break
 
     def display_controls(self):
         print("[-] & [=] Incrase frames by 200 and decrease by 100\n[.] FramebyFrame\n[/] exit FramebyFrame\n[q] Quit")
@@ -230,4 +238,5 @@ class Rff():
 if __name__ == "__main__":
     view = Rff()
     view.main()
+    #view.debug_func()
 
