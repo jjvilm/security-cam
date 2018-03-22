@@ -168,7 +168,7 @@ class Rff():
                     img_path = save_folder + '/' + img_path
                     frame = cv2.imread(img_path, -1)
                     #adding frame number as overlay
-                    cv2.putText(frame,'{}'.format(int(loop_frame_n)),(5,50), font, 0.5,(0,255,0),1,cv2.LINE_AA)
+                    cv2.putText(frame,'{}/{}'.format(loop_frame_n, self.t_n_frames),(1,30), font, 0.5,(0,255,0),1,cv2.LINE_AA)
                     cv2.imshow("Frames",frame)
                 except Exception as e:
                     print(e,'\nBAD Frame')
