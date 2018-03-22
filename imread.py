@@ -9,8 +9,6 @@ from Camara import save_folder_path as save_folder
 
 class Rff():
     def __init__(self):
-        # keeps track of the current frame loaded on display 
-        self.current_frame_counter = 0
         self.paths = moddb.db()
         # total number of frames
         self.t_n_frames = self.i_yield_path('')
@@ -36,7 +34,6 @@ class Rff():
         avg = sum(values) / len(values)
         return avg
 
-
     def frame_selection(self):
         print("Max frame == {}".format(self.t_n_frames))
         while True:
@@ -54,11 +51,10 @@ class Rff():
 
     def frame_slider(self, *args, **kwargs):
         self.frame_selected = cv2.getTrackbarPos('Frames:', 'Controls')
-        if not self.new_frame_from_slider:
-            self.new_frame_from_slider = True
+        self.new_frame_from_slider = True
 
     def set_frame_speed(self, *args, **kwargs):
-        slider_speed = cv2.getTrackbarPos('Speed','Controls')
+        slider_speed = cv2.getTrackbarPos('Speed:','Controls')
         speeds = {
                 0: 0,
                 1: .005,
@@ -143,30 +139,34 @@ class Rff():
         # Slider for frame tuning
         cv2.createTrackbar('Frames:', 'Controls', 0, self.t_n_frames, self.frame_slider)
         # Speed slider
-        cv2.createTrackbar('Speed','Controls',0,10, self.set_frame_speed)
+        cv2.createTrackbar('Speed:','Controls',0,10, self.set_frame_speed)
 
-        print("Total Frames: {}".format(self.t_n_frames))
-        self.display_controls()
+        #print("Total Frames: {}".format(self.t_n_frames))
+        #self.display_controls()
 
         while True:
             if self.frame_selected < 0:
                 self.frame_selected = 1
 
             for loop_frame_n, img_path in self.paths.yield_paths():
+                # restarts count from 0 with new frame selected
                 if self.new_frame_from_slider:
                     self.new_frame_from_slider = False
                     break
-                i = save_folder + '/' + img_path
-                self.current_frame_counter = loop_frame_n
 
                 # returns to current frame when returning from frame by frame funciton
                 if loop_frame_n < self.frame_selected:
                     continue
+
+                ### DEBUG slows down image read
+                #cv2.setTrackbarPos('Frames:', 'Controls', loop_frame_n)
+                ### DEBUG 
                 # Sometimes imshow crashes on this line while 
                 # reading image file
                 try:
                     # loads image from file path
-                    frame = cv2.imread(i, -1)
+                    img_path = save_folder + '/' + img_path
+                    frame = cv2.imread(img_path, -1)
                     #adding frame number as overlay
                     cv2.putText(frame,'{}'.format(int(loop_frame_n)),(5,50), font, 0.5,(0,255,0),1,cv2.LINE_AA)
                     cv2.imshow("Frames",frame)
