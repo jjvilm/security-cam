@@ -15,19 +15,19 @@ class Rff():
     #  controls speed of frames
     frame_speed = 0.30 # .3 normilizes time
     # global variable for max frames
-    t_n_frames = 0 
-    new_frame_from_slider = False
     frame_selected = 0
     # exit switch for empty directory
     stop = False
+    # for GUI slider to function
+    new_frame_from_slider = False
 
     def __init__(self):
-        # sets t_n_frames 
-        #self.get_dir_size(self.img_folder)
         # keeps track of the current frame loaded on display 
         self.current_frame_counter = 0
         self.loaded_frame_list = []
         self.paths = moddb.db()
+        # total number of frames
+        self.t_n_frames = self.i_yield_path('')
 
     def findBrightness(self, frame):
         try:
@@ -93,6 +93,7 @@ class Rff():
 
 
     def frame_selection(self):
+        print("Max frame == {}".format(self.t_n_frames))
         while True:
             frame_selected = raw_input("Start frame:\n")
             if frame_selected == 'q':
@@ -187,7 +188,6 @@ class Rff():
         return resized
 
     def main(self):
-        self.t_n_frames = self.i_yield_path('')
         print(self.t_n_frames)
         # does not run main if folder is empty size is <= 0
         if self.stop:
@@ -267,9 +267,7 @@ class Rff():
                     print('Frame speed changed to {}'.format(self.frame_speed))
                 # Frame selection prompt
                 if key == ord('f'): # ************
-                    print("Max frame == {}".format(len(self.loaded_frame_list) -1))
                     self.frame_selected = self.frame_selection()
-                    raw_input("Press Enter to display and continue")
                     break
                 # Frame by frame paused
                 if key == ord('.'):
@@ -291,6 +289,7 @@ class Rff():
 
                 #print("Frame speed: {}".format(frame_speed))
                 time.sleep(self.frame_speed)
+
                 if self.new_frame_from_slider:
                     #new_frame_from_slider = False
                     break
@@ -302,24 +301,8 @@ class Rff():
     def display_controls(self):
         print("[-] & [=] Incrase frames by 200 and decrease by 100\n[.] FramebyFrame\n[/] exit FramebyFrame\n[q] Quit")
 
-    def database_view(self):
-        import moddb
-        paths = moddb.db()
-        for i,img in paths.yield_paths():
-            print(i)
-            img = str(img)
-            path = img.rfind('/')
-            path = img[path:]
-            path = save_folder + path
-
-            img = cv2.imread(path)
-            cv2.imshow('img', img)
-            cv2.waitKey(0)
-
-
 
 if __name__ == "__main__":
     view = Rff()
     view.main()
-    #view.database_view()
 
