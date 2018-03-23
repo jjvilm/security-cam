@@ -4,7 +4,7 @@ import os
 import time
 import commands
 import moddb
-from Camara import save_folder_path as save_folder
+from CamSettings import save_folder_path as save_folder
 
 
 class Rff():

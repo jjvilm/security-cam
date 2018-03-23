@@ -9,7 +9,7 @@ import sys
 import threading
 import time
 import datetime
-import Camara
+import CamSettings
 
 # resized image percentage
 size = 100
@@ -277,7 +277,7 @@ def view_all():
     pass
 
 def main():
-    cams = Camara.InStore()
+    cams = CamSettings.InStore()
     # Prints the list of cams and it's corresponding index number
     for i,key in enumerate(cams.keys()):
         print("{} {}".format(i,key))

@@ -1,5 +1,5 @@
 import sqlite3
-import Camara as cam
+import CamSettings as cam
 
 
 class db():

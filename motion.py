@@ -7,7 +7,7 @@ import datetime
 import time 
 import os
 import threading
-import Camara
+import CamSettings
 import moddb 
 #import multiprocessing
 import requests
@@ -23,7 +23,7 @@ class Cam(object):
         self.online_switch = True
         self.firstFrame = None
         self.turn = threading.Lock()
-        self.save_folder = Camara.save_folder()
+        self.save_folder = CamSettings.save_folder()
         self.contour_area_value = 50
         self.frame_threshold_value = 60
         self.save_format = '.jpg'
@@ -221,7 +221,7 @@ def stop_threads():
 stop_thread = threading.Thread(target=stop_threads)
 stop_thread.start()
 
-cams_dict = Camara.InStore()
+cams_dict = CamSettings.InStore()
 
 # creates and runs recording on each object
 for key in cams_dict.keys():
