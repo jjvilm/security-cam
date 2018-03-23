@@ -181,12 +181,12 @@ class Cam(object):
                                             the_time = datetime.datetime.now()
                                             TIME = the_time.strftime("%H:%M:%S:%f")
                                             DAY = the_time.strftime("%A")
-                                            #DATE = the_time.strftime("%F")
-                                            save_path = self.save_folder + '/{}{}'.format(TIME, self.save_format)
+                                            DATE = the_time.strftime("%F")
+                                            save_path = self.save_folder + '/{}{}'.format(DATE + '-' + TIME, self.save_format)
                                             # saves frame to storage 
                                             #cv2.imwrite(self.save_folder+'/{}.png'.format(datetime.datetime.now().strftime("%H:%M:%S:%f-%F")), frame)
                                             cv2.imwrite(save_path, frame)
-                                            self.frames_db.insert2db(TIME + self.save_format, DAY) 
+                                            self.frames_db.insert2db(DATE + '-' + TIME + self.save_format, DAY) 
                                             #frame_index += 1
                                             break
 
