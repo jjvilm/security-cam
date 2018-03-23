@@ -149,7 +149,7 @@ class Cam(object):
                         gray = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2GRAY)
                         #gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
-                        # sets first image to compare motion to
+                        # sets first frame to compare against another frame for motion
                         if self.firstFrame is None:
                             self.firstFrame = gray
                             continue
@@ -188,12 +188,13 @@ class Cam(object):
                                             cv2.imwrite(save_path, frame)
                                             self.frames_db.insert2db(TIME + self.save_format, DAY) 
                                             #frame_index += 1
-
                                             break
+
                                         # auto sets night vision on/off
                                         elif frame_brightness < 10 or frame_brightness > 200:
                                             self.auto_night_vision(frame_brightness)
                                             break
+
                             except Exception as e:
                                 print(e)
                                 print("saved FAIL")
