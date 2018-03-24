@@ -17,14 +17,39 @@ class Rff():
         # loads all rows into a list of tuples
         self.rows = self.paths.get_rows(self.set_day)
         # total number of frames
-        self.t_n_frames = self.paths.count_rows(self.set_day)
         self.t_n_frames = len(self.rows)
         self.frame_selected = 0
         self.frame_speed = 0.30
         # exit switch for empty directory
         self.stop = False
+        self.day_loop = True
         self.new_frame_from_slider = None
         self.font = cv2.FONT_HERSHEY_SIMPLEX
+    def create_window_settings(self):
+        # window for slider
+        cv2.namedWindow('Controls')
+        # Slider for frame tuning
+        cv2.createTrackbar('Frames:', 'Controls', 0, self.t_n_frames, self.frame_slider)
+        # Speed slider
+        cv2.createTrackbar('Speed:','Controls',0,10, self.set_frame_speed)
+
+    def next_day(self):
+        days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        day_index = days.index(self.set_day)
+        new_day = day_index - 1
+        # loops back to saturday if on sunday
+        if new_day == -1:
+            new_day = 6
+        self.update_day(days[new_day])
+
+
+    def update_day(self, day):
+        self.set_day = day
+        self.rows = self.paths.get_rows(self.set_day)
+        self.t_n_frames = len(self.rows)
+        # Slider for frame tuning
+        #cv2.setTrackbarPos('Frames:', 'Controls', 0)
+
 
     def findBrightness(self, frame):
         try:
@@ -130,21 +155,13 @@ class Rff():
         return resized
 
     def main(self):
+        self.create_window_settings()
         # does not run main if folder is empty size is <= 0
         if self.stop:
             return
 
-        # window for slider
-        cv2.namedWindow('Controls')
-        # Slider for frame tuning
-        cv2.createTrackbar('Frames:', 'Controls', 0, self.t_n_frames, self.frame_slider)
-        # Speed slider
-        cv2.createTrackbar('Speed:','Controls',0,10, self.set_frame_speed)
-
-        #print("Total Frames: {}".format(self.t_n_frames))
-        #self.display_controls()
-
         while True:
+
             if self.frame_selected < 0:
                 self.frame_selected = 0
 
@@ -220,20 +237,29 @@ class Rff():
                 # prints brightness value of frame to terminal
                 if key == ord('b'):
                     print("Brightness value={}".format(self.findBrightness(frame)))
+                # toggles day loop
+                if key == ord('l'):
+                    if self.day_loop:
+                        print("Day Loop OFF")
+                        self.day_loop = False
+                    else:
+                        print("Day Loop ON")
+                        self.day_loop = True
 
                 #print("Frame speed: {}".format(frame_speed))
                 time.sleep(self.frame_speed)
 
-            else:
-                # frames end here so restart loop
-                print('Looping...')
-                self.frame_selected = 0
-    def debug_func(self):
-        x = self.paths.yield_paths()
-
-        for y in x:
-            print(y)
-            break
+            else: # for loops successfully iterated here so it runs this w/o breaking at the end
+                if self.day_loop:
+                    # frames end here so restart loop
+                    print('Looping...')
+                    self.frame_selected = 0
+                else:
+                    # restart variables for smoothness
+                    self.frame_selected = 0
+                    self.next_day()
+                    cv2.destroyWindow('Controls')
+                    self.create_window_settings()
 
     def display_controls(self):
         print("[-] & [=] Incrase frames by 200 and decrease by 100\n[.] FramebyFrame\n[/] exit FramebyFrame\n[q] Quit")
@@ -241,6 +267,7 @@ class Rff():
 
 if __name__ == "__main__":
     view = Rff()
+    #view.next_day()
     view.main()
     #view.debug_func()
 

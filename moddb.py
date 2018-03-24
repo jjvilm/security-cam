@@ -114,6 +114,8 @@ class db():
                 c.execute('''SELECT * FROM frames WHERE DAY=?''', (column_id,))
 
             rows = c.fetchall()
+            print(len(rows))
+            return
             for i, _ in enumerate(rows):
                 continue
             c.close()
@@ -127,6 +129,6 @@ class db():
 
 if __name__ == '__main__':
     x = db()
-    x.retrieve_column('Wednesday')
-    x.count_rows('Saturday')
+    #x.retrieve_column('Wednesday')
+    x.count_rows('Wednesday')
 
