@@ -2,6 +2,7 @@
 import cv2
 import os
 import time
+from datetime import datetime
 import commands
 import moddb
 from CamSettings import save_folder_path as save_folder
@@ -9,14 +10,21 @@ from CamSettings import save_folder_path as save_folder
 
 class Rff():
     def __init__(self):
+        # get name of current day
+        self.set_day = datetime.now().strftime("%A")
+        # initiate databse object
         self.paths = moddb.db()
+        # loads all rows into a list of tuples
+        self.rows = self.paths.get_rows(self.set_day)
         # total number of frames
-        self.t_n_frames = self.i_yield_path('')
+        self.t_n_frames = self.paths.count_rows(self.set_day)
+        self.t_n_frames = len(self.rows)
         self.frame_selected = 0
         self.frame_speed = 0.30
         # exit switch for empty directory
         self.stop = False
         self.new_frame_from_slider = None
+        self.font = cv2.FONT_HERSHEY_SIMPLEX
 
     def findBrightness(self, frame):
         try:
@@ -69,13 +77,6 @@ class Rff():
                 10: 1
                 }
         self.frame_speed = speeds[slider_speed]
-    def i_yield_path(self, frame_index):
-        """Returns len of rows """
-        i = 0
-        for i, path in self.paths.yield_paths():
-            if i == frame_index:
-                return path
-        return i
 
     def frame_by_frame(self, current_frame_n):
         # switch to dipslay image after frame number is set
@@ -84,14 +85,14 @@ class Rff():
         frame = None
         while True:
             if display:
-                file_path = self.i_yield_path(current_frame_n)
+                file_path = self.rows[current_frame_n][0]
                 i = save_folder + '/' + file_path
 
                 frame = cv2.imread(i)
-                print(current_frame_n, str(file_path))
                 display = False
             # resizes 400% on frame by frame
             #frame = self.resize(frame)
+            cv2.putText(frame,'{}/{} {}'.format(current_frame_n, self.t_n_frames, file_path), (1,30), self.font, 0.5, (0,255,0), 1, cv2.LINE_AA)
             cv2.imshow("Frames", frame)
 
             key = cv2.waitKey(33) & 0xFF
@@ -129,8 +130,6 @@ class Rff():
         return resized
 
     def main(self):
-        font = font = cv2.FONT_HERSHEY_SIMPLEX
-        print(self.t_n_frames)
         # does not run main if folder is empty size is <= 0
         if self.stop:
             return
@@ -149,7 +148,8 @@ class Rff():
             if self.frame_selected < 0:
                 self.frame_selected = 0
 
-            for loop_frame_n, img_path in self.paths.yield_paths():
+            for loop_frame_n, img_path in enumerate(self.rows):
+                img_path = img_path[0]
                 # restarts count from 0 with new frame selected
                 if self.new_frame_from_slider:
                     self.new_frame_from_slider = False
@@ -169,7 +169,7 @@ class Rff():
                     img_path = save_folder + '/' + img_path
                     frame = cv2.imread(img_path, -1)
                     #adding frame number as overlay
-                    cv2.putText(frame,'{}/{}'.format(loop_frame_n, self.t_n_frames),(1,30), font, 0.5,(0,255,0),1,cv2.LINE_AA)
+                    cv2.putText(frame,'{}/{} {}'.format(loop_frame_n, self.t_n_frames, self.set_day),(1,30), self.font, 0.5,(0,255,0),1,cv2.LINE_AA)
                     cv2.imshow("Frames",frame)
                 except Exception as e:
                     print(e,'\nBAD Frame')
@@ -206,6 +206,7 @@ class Rff():
                     break
                 # skips by 100 frames
                 if key == ord('='):
+                    if 100 + loop_frame_n < self.t_n_frames:
                         self.frame_selected = loop_frame_n + 100 
                         break
                 # backwards by 100 frames
@@ -216,14 +217,17 @@ class Rff():
                 if key == ord('b'):
                     print("Brightness value={}".format(self.findBrightness(frame)))
 
+                # prints brightness value of frame to terminal
+                if key == ord('b'):
+                    print("Brightness value={}".format(self.findBrightness(frame)))
+
                 #print("Frame speed: {}".format(frame_speed))
                 time.sleep(self.frame_speed)
 
             else:
                 # frames end here so restart loop
                 print('Looping...')
-                if loop_frame_n == self.t_n_frames: 
-                    self.frame_selected = 0
+                self.frame_selected = 0
     def debug_func(self):
         x = self.paths.yield_paths()
 
