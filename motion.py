@@ -47,6 +47,7 @@ class Cam(object):
             session.get(url + 'on')
         else:
             session.get(url + 'off')
+        time.sleep(1)
             
     def findBrightness(self, frame):
         try: 
@@ -191,7 +192,7 @@ class Cam(object):
                                             break
 
                                         # auto sets night vision on/off
-                                        elif frame_brightness < 10 or frame_brightness > 200:
+                                        elif frame_brightness < 20 or frame_brightness > 200:
                                             self.auto_night_vision(frame_brightness)
                                             break
 
