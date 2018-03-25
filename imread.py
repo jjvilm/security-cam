@@ -18,13 +18,17 @@ class Rff():
         self.rows = self.paths.get_rows(self.set_day)
         # total number of frames
         self.t_n_frames = len(self.rows)
+        # keeps track of current frame 
         self.frame_selected = 0
-        self.frame_speed = 0.30
+        self.frame_speed = 0.095
+        self.frame_advance = 25
         # exit switch for empty directory
         self.stop = False
         # stops from getting yesterdays frames if loop is on
         self.day_loop = True
+        # stats new loop based on new frame selected
         self.new_frame_from_slider = None
+        # font displayed on image
         self.font = cv2.FONT_HERSHEY_SIMPLEX
 
     def create_window_settings(self):
@@ -103,17 +107,17 @@ class Rff():
     def set_frame_speed(self, *args, **kwargs):
         slider_speed = cv2.getTrackbarPos('Speed:','Controls')
         speeds = {
-                0: 0,
-                1: .005,
-                2: .015,
-                3: .025,
-                4: .050,
-                5: .075,
-                6: .1,
-                7: .3,
-                8: .5,
-                9: .9,
-                10: 1
+                0: 1,
+                1: .325,
+                2: .250,
+                3: .200,
+                4: .150,
+                5: .1,
+                6: .075,
+                7: .050,
+                8: .025,
+                9: .015,
+                10: 0
                 }
         self.frame_speed = speeds[slider_speed]
 
@@ -139,25 +143,21 @@ class Rff():
             # forward
             if key == ord('.'):
                 # next frame if available
-                if current_frame_n  < self.t_n_frames:
-                    current_frame_n += 1
-                    display = True
-                    continue
-                # loop back to begiining
-                else:
-                    current_frame_n = 1
-                    display = True
-                    continue
+                current_frame_n += 1
+                # loops back to start 
+                if current_frame_n  >= self.t_n_frames:
+                    current_frame_n = 0
+                display = True
+                continue
 
             # backward
             if key == ord(','):
-                if current_frame_n > 0:
-                    current_frame_n -= 1
-                    # go to end from beginning
-                    if current_frame_n == 0:
-                        current_frame_n = self.t_n_frames
-                    display = True
-                    continue
+                current_frame_n -= 1
+                # loops to last frame
+                if current_frame_n < 0:
+                    current_frame_n = self.t_n_frames - 1
+                display = True
+                continue
 
             if key == ord('/'):
                 return current_frame_n
@@ -237,12 +237,16 @@ class Rff():
                     break
                 # skips by 100 frames
                 if key == ord('='):
-                    if 100 + loop_frame_n < self.t_n_frames:
-                        self.frame_selected = loop_frame_n + 100 
+                    if self.frame_advance + loop_frame_n < self.t_n_frames:
+                        self.frame_selected = loop_frame_n + self.frame_advance
                         break
                 # backwards by 100 frames
                 if key == ord('-'):
-                    self.frame_selected = loop_frame_n - 100 
+                    minus_frames = loop_frame_n - self.frame_advance
+                    if minus_frames < 0:
+                        self.frame_selected = self.t_n_frames - abs(minus_frames) 
+                    else:
+                        self.frame_selected = minus_frames
                     break
 
                 # prints brightness value of frame to terminal
@@ -250,6 +254,9 @@ class Rff():
                     print("Brightness value={}".format(self.findBrightness(frame)))
                 # Moves to next day
                 if key == ord('n'):
+                    self.next_day('yesterday')
+                    break
+                if key == ord('N'):
                     self.next_day()
                     break
                 # toggles day loop
