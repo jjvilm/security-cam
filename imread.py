@@ -22,9 +22,11 @@ class Rff():
         self.frame_speed = 0.30
         # exit switch for empty directory
         self.stop = False
+        # stops from getting yesterdays frames if loop is on
         self.day_loop = True
         self.new_frame_from_slider = None
         self.font = cv2.FONT_HERSHEY_SIMPLEX
+
     def create_window_settings(self):
         # window for slider
         cv2.namedWindow('Controls')
@@ -33,20 +35,32 @@ class Rff():
         # Speed slider
         cv2.createTrackbar('Speed:','Controls',0,10, self.set_frame_speed)
 
-    def next_day(self):
+    def next_day(self, day='yesterday'):
         days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
         day_index = days.index(self.set_day)
-        new_day = day_index - 1
-        # loops back to saturday if on sunday
-        if new_day == -1:
-            new_day = 6
-        self.update_day(days[new_day])
+        if day == 'yesterday':
+            new_day = day_index - 1
+            # loops back to Sunday if on Monday
+            if new_day == -1:
+                new_day = 6
+            self.update_day(days[new_day])
+        else:
+            # moves forward if on Saturday
+            tomorrow = day_index + 1
+            if tomorrow == 7:
+                tomorrow = 0
+            self.update_day(days[tomorrow])
 
 
     def update_day(self, day):
+        """ New iteration of day starts so all varibles should reset accordingly """
+        self.frame_selected = 0
         self.set_day = day
         self.rows = self.paths.get_rows(self.set_day)
         self.t_n_frames = len(self.rows)
+
+        cv2.destroyWindow('Controls')
+        self.create_window_settings()
         # Slider for frame tuning
         #cv2.setTrackbarPos('Frames:', 'Controls', 0)
 
@@ -230,13 +244,14 @@ class Rff():
                 if key == ord('-'):
                     self.frame_selected = loop_frame_n - 100 
                     break
-                # prints brightness value of frame to terminal
-                if key == ord('b'):
-                    print("Brightness value={}".format(self.findBrightness(frame)))
 
                 # prints brightness value of frame to terminal
                 if key == ord('b'):
                     print("Brightness value={}".format(self.findBrightness(frame)))
+                # Moves to next day
+                if key == ord('n'):
+                    self.next_day()
+                    break
                 # toggles day loop
                 if key == ord('l'):
                     if self.day_loop:
@@ -257,9 +272,9 @@ class Rff():
                 else:
                     # restart variables for smoothness
                     self.frame_selected = 0
-                    self.next_day()
-                    cv2.destroyWindow('Controls')
-                    self.create_window_settings()
+                    self.next_day('yesterday')
+                    #cv2.destroyWindow('Controls')
+                    #self.create_window_settings()
 
     def display_controls(self):
         print("[-] & [=] Incrase frames by 200 and decrease by 100\n[.] FramebyFrame\n[/] exit FramebyFrame\n[q] Quit")
