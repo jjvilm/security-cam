@@ -2,12 +2,10 @@
 import requests
 import time
 # 		no leading slash after folder name
-#save_folder_path = '/home/pi/usb/Juan/Media/sec.cam'
-#bs_file_name = '/frames.db'
 DATABASE_FILE = '/frames.db'
-
-#save_folder_path = '/run/user/1000/gvfs/sftp:host=192.168.0.112,user=pi/home/pi/usb/Juan/Media/sec.cam'
-SAVE_PATH = '/run/user/1000/gvfs/sftp:host=192.168.0.112,user=pi/home/pi/usb/Juan/Media/sec.cam'
+#SAVE_PATH = '/run/user/1000/gvfs/sftp:host=192.168.0.112,user=pi/home/pi/usb/Juan/Media/sec.cam'
+# 
+SAVE_PATH = '/home/pi/usb/Juan/Media/sec.cam'
 
 CAM_ADDRESSES = {'lg':'192.168.0.147:8080'}
 
