@@ -1,11 +1,12 @@
 #!/usr/bin/python2
+import requests
 import cv2
 import os
 import time
 from datetime import datetime
 import commands
 import moddb
-from CamSettings import save_folder_path as save_folder
+from CamSettings import SAVE_PATH
 
 
 class Rff():
@@ -39,7 +40,7 @@ class Rff():
         # Speed slider
         cv2.createTrackbar('Speed:','Controls',0,10, self.set_frame_speed)
 
-    def next_day(self, day='yesterday'):
+    def next_day(self, day):
         days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
         day_index = days.index(self.set_day)
         if day == 'yesterday':
@@ -49,8 +50,8 @@ class Rff():
                 new_day = 6
             self.update_day(days[new_day])
         else:
-            # moves forward if on Saturday
             tomorrow = day_index + 1
+            # moves forward if on Saturday
             if tomorrow == 7:
                 tomorrow = 0
             self.update_day(days[tomorrow])
@@ -129,7 +130,7 @@ class Rff():
         while True:
             if display:
                 file_path = self.rows[current_frame_n][0]
-                i = save_folder + '/' + file_path
+                i = SAVE_PATH + '/' + file_path
 
                 frame = cv2.imread(i)
                 display = False
@@ -197,7 +198,7 @@ class Rff():
                 # reading image file
                 try:
                     # loads image from file path
-                    img_path = save_folder + '/' + img_path
+                    img_path = SAVE_PATH + '/' + img_path
                     frame = cv2.imread(img_path, -1)
                     #adding frame number as overlay
                     cv2.putText(frame,'{}/{} {}'.format(loop_frame_n, self.t_n_frames, self.set_day),(1,30), self.font, 0.5,(0,255,0),1,cv2.LINE_AA)
@@ -250,14 +251,14 @@ class Rff():
                     break
 
                 # prints brightness value of frame to terminal
-                if key == ord('b'):
+                if key == ord('r'):
                     print("Brightness value={}".format(self.findBrightness(frame)))
                 # Moves to next day
-                if key == ord('n'):
+                if key == ord('b'):
                     self.next_day('yesterday')
                     break
-                if key == ord('N'):
-                    self.next_day()
+                if key == ord('n'):
+                    self.next_day('tomorrow')
                     break
                 # toggles day loop
                 if key == ord('l'):
