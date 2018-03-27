@@ -1,10 +1,10 @@
 import sqlite3
-import CamSettings as cam
+from CamSettings import SAVE_PATH, DATABASE_FILE
 
 
 class db():
     def __init__(self):
-        self.db_file = cam.save_folder_path + cam.db_file_name
+        self.db_file = SAVE_PATH + DATABASE_FILE
 
     def connect(self):
         # dont forget to close connection from object.close()

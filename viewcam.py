@@ -9,7 +9,7 @@ import sys
 import threading
 import time
 import datetime
-import CamSettings
+import CamSettings 
 
 # resized image percentage
 size = 100
@@ -26,9 +26,10 @@ class Camara_obj(object):
         self.showThresh = 0
         self.showThreshErosion = 0
         # settings 
-        self.contourAreaValue = 25
-        self.thresholdValue = 35
+        self.contourAreaValue = 90
+        self.thresholdValue = 50
         self.kernelValue = 1
+        self.quality_toggle = False
 
     def run_thread(self):
         with self.turn_lock:
@@ -271,13 +272,13 @@ class Camara_obj(object):
                 # Prints brightness value of current single frame
                 if key == ord('b'):
                     print("Frame Average Brightness:{}".format(self.findBrightness(i)))
-                       
+
 
 def view_all():
     pass
 
 def main():
-    cams = CamSettings.InStore()
+    cams = CamSettings.CAM_ADDRESSES
     # Prints the list of cams and it's corresponding index number
     for i,key in enumerate(cams.keys()):
         print("{} {}".format(i,key))
