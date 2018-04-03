@@ -19,12 +19,14 @@ class Rff():
         self.rows = self.paths.get_rows(self.set_day)
         # total number of frames
         self.t_n_frames = len(self.rows)
-        # keeps track of current frame 
+        # keeps track of current frame globaly
         self.frame_selected = 0
+        # speed at which frames are displayed
         self.frame_speed = 0.095
+        # value used by - + buttons
         self.frame_advance = 25
-        # exit switch for empty directory
-        self.stop = False
+        # skip play 
+        self.frame_step = 0
         # stops from getting yesterdays frames if loop is on
         self.day_loop = True
         # stats new loop based on new frame selected
@@ -140,9 +142,11 @@ class Rff():
             cv2.imshow("Frames", frame)
 
             key = cv2.waitKey(33) & 0xFF
+            if key == ord('q'):
+                exit(0)
            
             # forward
-            if key == ord('.'):
+            elif key == ord('.'):
                 # next frame if available
                 current_frame_n += 1
                 # loops back to start 
@@ -152,7 +156,7 @@ class Rff():
                 continue
 
             # backward
-            if key == ord(','):
+            elif key == ord(','):
                 current_frame_n -= 1
                 # loops to last frame
                 if current_frame_n < 0:
@@ -160,7 +164,7 @@ class Rff():
                 display = True
                 continue
 
-            if key == ord('/'):
+            elif key == ord('/'):
                 return current_frame_n
 
     def resize(self, frame):
@@ -171,16 +175,21 @@ class Rff():
 
     def main(self):
         self.create_window_settings()
-        # does not run main if folder is empty size is <= 0
-        if self.stop:
-            return
 
         while True:
+            skips = self.frame_step
 
             if self.frame_selected < 0:
                 self.frame_selected = 0
 
             for loop_frame_n, img_path in enumerate(self.rows):
+                # skipping frames
+                if skips:
+                    skips -= 1
+                    continue
+                else:
+                    skips = self.frame_step
+
                 img_path = img_path[0]
                 # restarts count from 0 with new frame selected
                 if self.new_frame_from_slider:
@@ -188,12 +197,9 @@ class Rff():
                     break
 
                 # returns to current frame when returning from frame by frame funciton
-                if loop_frame_n < self.frame_selected:
+                elif loop_frame_n < self.frame_selected: # catches up to current frame
                     continue
 
-                ### DEBUG slows down image read
-                #cv2.setTrackbarPos('Frames:', 'Controls', loop_frame_n)
-                ### DEBUG 
                 # Sometimes imshow crashes on this line while 
                 # reading image file
                 try:
@@ -209,40 +215,38 @@ class Rff():
 
                 key = cv2.waitKey(33) & 0xFF
                 if key == ord('q'):
-                    self.stop = 1
                     exit(0)
-                    return
-                if key == ord('p'):
+                elif key == ord('p'):
                     cv2.waitKey(0)
                 # Increases speed
-                if key == ord('>'):
+                elif key == ord('>'):
                     if self.frame_speed != 0 and self.frame_speed >= .005:
                         self.frame_speed -= .05
                     print('Frame speed changed to {}'.format(self.frame_speed))
                 # Decrases frame play
-                if key == ord('<'):
+                elif key == ord('<'):
                     self.frame_speed += .05
                     print('Frame speed changed to {}'.format(self.frame_speed))
                 # Normal Speed
-                if key == ord('/'):
+                elif key == ord('/'):
                     self.frame_speed  = 0
                     print('Frame speed changed to {}'.format(self.frame_speed))
                 # Frame selection prompt
-                if key == ord('f'): # ************
+                elif key == ord('f'): # ************
                     self.frame_selected = self.frame_selection()
                     break
                 # Frame by frame paused
-                if key == ord('.'):
+                elif key == ord('.'):
                     # goes into a loop that pauses frames
                     self.frame_selected = self.frame_by_frame(loop_frame_n)
                     break
                 # skips by 100 frames
-                if key == ord('='):
+                elif key == ord('='):
                     if self.frame_advance + loop_frame_n < self.t_n_frames:
                         self.frame_selected = loop_frame_n + self.frame_advance
                         break
                 # backwards by 100 frames
-                if key == ord('-'):
+                elif key == ord('-'):
                     minus_frames = loop_frame_n - self.frame_advance
                     if minus_frames < 0:
                         self.frame_selected = self.t_n_frames - abs(minus_frames) 
@@ -251,23 +255,33 @@ class Rff():
                     break
 
                 # prints brightness value of frame to terminal
-                if key == ord('r'):
+                elif key == ord('r'):
                     print("Brightness value={}".format(self.findBrightness(frame)))
                 # Moves to next day
-                if key == ord('b'):
+                elif key == ord('b'):
                     self.next_day('yesterday')
                     break
-                if key == ord('n'):
+                elif key == ord('n'):
                     self.next_day('tomorrow')
                     break
                 # toggles day loop
-                if key == ord('l'):
+                elif key == ord('l'):
                     if self.day_loop:
                         print("Day Loop OFF")
                         self.day_loop = False
                     else:
                         print("Day Loop ON")
                         self.day_loop = True
+                elif key == ord('s'):
+                    if self.frame_step >= 0:
+                        self.frame_step += 1
+                        print("Frame Step:{}".format(self.frame_step))
+                        continue
+                elif key == ord('S'):
+                    if self.frame_step >= 1:
+                        self.frame_step -= 1
+                        print("Frame Step:{}".format(self.frame_step))
+                        continue
 
                 #print("Frame speed: {}".format(frame_speed))
                 time.sleep(self.frame_speed)

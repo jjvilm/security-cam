@@ -104,6 +104,20 @@ class db():
         except Exception as e:
             print(e)
 
+    def isDayEmpty(self, day):
+        """ Pass day as str to check if entry is empty or not in database """
+        conn = self.connect()
+        c = conn.cursor()
+
+        c.execute('''SELECT * FROM frames WHERE DAY=?''', (day,))
+        entry = c.fetchone()
+        if entry:
+            print(entry)
+            return True
+        else:
+            print(0)
+            False
+
     def count_rows(self, column_id='week'):
         try:
             conn = self.connect()
@@ -115,12 +129,9 @@ class db():
 
             rows = c.fetchall()
             print(len(rows))
-            return
-            for i, _ in enumerate(rows):
-                continue
             c.close()
             conn.close()
-            return i
+            return len(rows)
 
         except Exception as e:
             print(e)
@@ -130,5 +141,7 @@ class db():
 if __name__ == '__main__':
     x = db()
     #x.retrieve_column('Wednesday')
-    x.count_rows('Wednesday')
+    #x.count_rows('Sunday')
+    x.isDayEmpty('Monday')
+    x.isDayEmpty('Sunday')
 

@@ -26,7 +26,7 @@ class Cam(object):
         self.turn = threading.Lock()
         self.save_folder = SAVE_PATH
         self.contour_area_value = 50
-        self.frame_threshold_value = 60
+        self.frame_threshold_value = 80
         self.save_format = '.jpg'
 
         #object_process = multiprocessing.Process(target=self.run_motion_detection)

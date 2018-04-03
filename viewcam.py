@@ -25,6 +25,10 @@ class Camara_obj(object):
         self.showDelta = 0
         self.showThresh = 0
         self.showThreshErosion = 0
+        self.frame_top = 0
+        self.frame_btm = 0
+        self.frame_rgt = 0
+        self.frame_lft = 0
         # settings 
         self.contourAreaValue = 90
         self.thresholdValue = 50
@@ -199,7 +203,7 @@ class Camara_obj(object):
                     exit(0)
 
                 # toggles thresh image displayed
-                if key == ord('t'):
+                elif key == ord('t'):
                     if self.showThresh:
                         self.showThresh = 0
                         try:
@@ -210,7 +214,7 @@ class Camara_obj(object):
                         self.showThresh = 1
 
                 # toggles Delta image displayed
-                if key == ord('d'):
+                elif key == ord('d'):
                     if self.showDelta:
                         self.showDelta = 0
                         try:
@@ -221,7 +225,7 @@ class Camara_obj(object):
                         self.showDelta = 1
                         
                 # toggles threshErosion image displayed
-                if key == ord('e'):
+                elif key == ord('e'):
                     if self.showThreshErosion:
                         self.showThreshErosion = 0
                         try:
@@ -232,36 +236,36 @@ class Camara_obj(object):
                         self.showThreshErosion = 1
 
                 # keys for Contour settings
-                if key == ord('='):
+                elif key == ord('='):
                     self.contourAreaValue += 5
                     print("Contour Area:{}".format(self.contourAreaValue))
-                if key == ord('-'):
+                elif key == ord('-'):
                     self.contourAreaValue -= 5
                     print("Contour Area:{}".format(self.contourAreaValue))
 
                 # keys for thresh settings
-                if key == ord(']'):
+                elif key == ord(']'):
                     self.thresholdValue += 1
                     print("Thresh:{}".format(self.thresholdValue))
-                if key == ord('['):
+                elif key == ord('['):
                     self.thresholdValue -= 1
                     print("Thresh:{}".format(self.thresholdValue))
 
                 # keys for kernel
-                if key == ord('i'):
+                elif key == ord('i'):
                     self.kernelValue += 1
                     print("Kernel:{}".format(self.kernelValue))
 
-                if key == ord('k'):
+                elif key == ord('k'):
                     # negative dimensions not allowed
                     if self.kernelValue != 0:
                         self.kernelValue -= 1
                         print("Kernel:{}".format(self.kernelValue))
 
-                if key == ord('p'):
+                elif key == ord('p'):
                     print("\nContour Area:{}\nThreshold:{}\nKernel:{}".format(self.contourAreaValue, self.thresholdValue,self.kernelValue))
 
-                if key == ord('f'):
+                elif key == ord('f'):
                     if self.applyFilters == 0:
                         self.applyFilters = 1
                         print("Filters {}".format(self.applyFilters))
@@ -270,8 +274,22 @@ class Camara_obj(object):
                         print("Filters {}".format(self.applyFilters))
 
                 # Prints brightness value of current single frame
-                if key == ord('b'):
+                elif key == ord('b'):
                     print("Frame Average Brightness:{}".format(self.findBrightness(i)))
+
+                # moving frames ROI up down right left
+                # move top
+                elif key == ord('8'):
+                    pass
+                # bottom
+                elif key == ord('2'):
+                    pass
+                # right
+                elif key == ord('4'):
+                    pass
+                # left
+                elif key == ord('6'):
+                    pass
 
 
 def view_all():
