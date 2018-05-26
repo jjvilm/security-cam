@@ -101,6 +101,7 @@ class db():
             # closes connection 
             c.close()
             conn.close()
+            print("retrive_colum conn close")
         except Exception as e:
             print(e)
 
@@ -115,8 +116,11 @@ class db():
             print(entry)
             return True
         else:
-            print(0)
+            print("No entry for {}".format(day))
             False
+        c.close()
+        conn.close()
+        print("isDayEmpty conn closed")
 
     def count_rows(self, column_id='week'):
         try:
@@ -131,17 +135,38 @@ class db():
             print(len(rows))
             c.close()
             conn.close()
+            print("Count_rows conn closed")
             return len(rows)
+
+        except Exception as e:
+            print(e)
+
+    def del_row(self, row):
+        try:
+            conn = self.connect()
+            c = conn.cursor()
+
+            c.execute('''DELETE FROM frames WHERE FILE=?''', (row,))
+            print("Deleted frame:\n{}".format(row))
+
+            c.close()
+            conn.close()
 
         except Exception as e:
             print(e)
 
 
 
+
 if __name__ == '__main__':
     x = db()
-    #x.retrieve_column('Wednesday')
-    #x.count_rows('Sunday')
-    x.isDayEmpty('Monday')
-    x.isDayEmpty('Sunday')
+    #x.isDayEmpty('Sunday')
+    #x.isDayEmpty('Monday')
+    #x.isDayEmpty('Tuesday')
+    #x.isDayEmpty('Wednesday')
+    #x.isDayEmpty('Thursday')
+    #x.isDayEmpty('Friday')
+    #x.isDayEmpty('Saturday')
+    #x.count_rows()
+
 

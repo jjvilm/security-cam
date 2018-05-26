@@ -1,15 +1,12 @@
 #!/usr/bin/python
 import requests
 import time
-# 		no leading slash after folder name
-#save_folder_path = '/home/pi/usb/Juan/Media/sec.cam'
 #bs_file_name = '/frames.db'
 DATABASE_FILE = '/frames.db'
 
-#save_folder_path = '/run/user/1000/gvfs/sftp:host=192.168.0.112,user=pi/home/pi/usb/Juan/Media/sec.cam'
-SAVE_PATH = '/run/user/1000/gvfs/sftp:host=192.168.0.112,user=pi/home/pi/usb/Juan/Media/sec.cam'
+SAVE_PATH = '/run/user/1000/gvfs/sftp:host=192.168.1.112,user=pi/home/pi/usb/securityCam/'
 
-CAM_ADDRESSES = {'lg':'192.168.0.147:8080'}
+CAM_ADDRESSES = {'lg':'192.168.0.146:8080'}
 
 
 def get_status(url):
@@ -63,17 +60,22 @@ if __name__ == "__main__":
     #setSett(url, 'night_vision', 'on')
     quality = 49
     setSett(url, 'quality', str(quality))
+    #exit(0)
     zoom = 1
-    while zoom < 100:
+    print('this')
+    while zoom <= 50:
         print(zoom)
         setSett(url, 'zoom', str(zoom))
         zoom += 1
         time.sleep(.5)
-    while zoom > 1:
+    setSett(url, 'quality', str(99))
+    while zoom >= 1:
         print(zoom)
         setSett(url, 'zoom', str(zoom))
         zoom -= 1
         time.sleep(.5)
+    setSett(url, 'quality', str(quality))
+
 
 
 

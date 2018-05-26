@@ -19,14 +19,15 @@ class Cam(object):
     global run
     def __init__(self, cam_name, host):
         self.frames_db = moddb.db()
+        self.frames_db.create_base_db()
         self.cam_name = cam_name 
         self.host = host
         self.online_switch = True
         self.firstFrame = None
         self.turn = threading.Lock()
         self.save_folder = SAVE_PATH
-        self.contour_area_value = 50
-        self.frame_threshold_value = 80
+        self.contour_area_value = 250
+        self.frame_threshold_value = 100
         self.save_format = '.jpg'
 
         #object_process = multiprocessing.Process(target=self.run_motion_detection)

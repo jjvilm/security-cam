@@ -237,19 +237,21 @@ class Camara_obj(object):
 
                 # keys for Contour settings
                 elif key == ord('='):
-                    self.contourAreaValue += 5
+                    self.contourAreaValue += 1
                     print("Contour Area:{}".format(self.contourAreaValue))
                 elif key == ord('-'):
-                    self.contourAreaValue -= 5
-                    print("Contour Area:{}".format(self.contourAreaValue))
+                    if self.contourAreaValue >= 5:
+                        self.contourAreaValue -= 5
+                        print("Contour Area:{}".format(self.contourAreaValue))
 
                 # keys for thresh settings
                 elif key == ord(']'):
                     self.thresholdValue += 1
                     print("Thresh:{}".format(self.thresholdValue))
                 elif key == ord('['):
-                    self.thresholdValue -= 1
-                    print("Thresh:{}".format(self.thresholdValue))
+                    if self.thresholdValue >= 1:
+                        self.thresholdValue -= 1
+                        print("Thresh:{}".format(self.thresholdValue))
 
                 # keys for kernel
                 elif key == ord('i'):
@@ -302,14 +304,14 @@ def main():
         print("{} {}".format(i,key))
 
     # Get camara number
-#    while 1:
-#        try:
-#            answer = int(raw_input("Choose Camera:\n"))
-#            break
-#        except Exception as e:
-#            print("Not a number\n{}".format(e))
-#
-    answer = 0
+    while 1:
+        try:
+            answer = int(raw_input("Choose Camera:\n"))
+            break
+        except Exception as e:
+            print("Not a number\n{}".format(e))
+
+#    answer = 0
     if answer == 'All':
         cams['All']()
     else:
