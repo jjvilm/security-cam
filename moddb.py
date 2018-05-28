@@ -66,13 +66,29 @@ class db():
         try:
             conn = self.connect()
             c = conn.cursor()
-            if column_id == 'week':
-                c.execute('SELECT * FROM frames')
-            else:
-                c.execute('''SELECT * FROM frames WHERE DAY=?''', (column_id,))
+            days_to_loop = 7
+            while days_to_loop:
+                if column_id == 'week':
+                    c.execute('SELECT * FROM frames')
+                else:
+                    c.execute('''SELECT * FROM frames WHERE DAY=?''', (column_id,))
 
-            # closes connection 
-            rows = c.fetchall()
+                # closes connection 
+                rows = c.fetchall()
+                # makes sure to fetch a day with entries/rows
+                if len(rows) <= 0:
+                    print("No entries for: {}\n".format(column_id))
+                    column_id = self._previous_day(column_id)
+                    days_to_loop -= 1
+                    continue
+                else:
+                    break
+            # runs if database is empty but created
+            else:
+                c.close()
+                conn.close()
+                return "Database is empty"
+                
             c.close()
             conn.close()
             # returns list of list [rowN, (valueA, valueB)]
@@ -80,6 +96,20 @@ class db():
 
         except Exception as e:
             print(e)
+
+    def _previous_day(self, current_day):
+        """ ruturns str day of week """
+        days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+        day_index = days.index(current_day)
+
+        day_index = day_index - 1
+        # loops back to Sunday if on Monday
+        if day_index == -1:
+            day_index = 6
+
+        print("Checking: {}\n".format(days[day_index]))
+        return days[day_index] 
+
 
 
 
@@ -160,13 +190,15 @@ class db():
 
 if __name__ == '__main__':
     x = db()
-    #x.isDayEmpty('Sunday')
-    #x.isDayEmpty('Monday')
-    #x.isDayEmpty('Tuesday')
-    #x.isDayEmpty('Wednesday')
-    #x.isDayEmpty('Thursday')
-    #x.isDayEmpty('Friday')
-    #x.isDayEmpty('Saturday')
+    x.connect()
+    #x.count_rows('week')
+    x.isDayEmpty('Sunday')
+    x.isDayEmpty('Monday')
+    x.isDayEmpty('Tuesday')
+    x.isDayEmpty('Wednesday')
+    x.isDayEmpty('Thursday')
+    x.isDayEmpty('Friday')
+    x.isDayEmpty('Saturday')
     #x.count_rows()
 
 
