@@ -1,11 +1,6 @@
-##!/usr/bin/python2
-# Stream Video with OpenCV from an Android running IP Webcam (https://play.google.com/store/apps/details?id=com.pas.webcam)
-# Code Adopted from http://stackoverflow.com/questions/21702477/how-to-parse-mjpeg-http-stream-from-ip-camera
-
+#!/usr/bin/python3
 import cv2
-import urllib2
 import numpy as np
-import sys
 import threading
 import time
 import datetime
@@ -21,7 +16,7 @@ class Camara_obj(object):
         self.host = host
         self.first_image = None
         # use to toggle shown frames on screen
-        self.applyFilters = 0
+        self.imageFilterToggle = 0
         self.showDelta = 0
         self.showThresh = 0
         self.showThreshErosion = 0
@@ -47,7 +42,7 @@ class Camara_obj(object):
         return resized
 
     def display_motion(self, frame):
-        """ should return 3 variables
+        """ should return 4 variables
             1st one should be the frame to dipslay, 
             2nd frameDelta image
             3rd thresh image, 4th threshErosion """
@@ -58,11 +53,9 @@ class Camara_obj(object):
         gray = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2GRAY)
         #gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
-
         # sets first frame to compare against another frame for motion
         if self.first_image is None:
             self.first_image = gray
-            # 
             return frame, 0, 0, 0
 
         # checks both images are of same size
@@ -71,28 +64,15 @@ class Camara_obj(object):
             # return current frame to stop from comparing 2 diff size images
             return frame, 0, 0, 0
 
-
-
         # compute the absolute difference between the current frame and first frame
         frameDelta = cv2.absdiff(self.first_image, gray)
 
         # Must set new first_image again for next one to compare against
         self.first_image = gray
-
-
         #                                  25 normal
         thresh = cv2.threshold(frameDelta, self.thresholdValue, 255, cv2.THRESH_BINARY)[1]
-        # erode thresh to clean up white noise
-        #kernel = np.ones((self.kernelValue,self.kernelValue),np.uint8)
-        ###### DEBUGING # change back to original image
-        #threshErosion = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-        #threshErosion = cv2.dilate(threshErosion, kernel, iterations=1)
-        ###### end debug
-
-
-
-        #_,cnts,_ = cv2.findContours(threshErosion.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-        _,cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        # works with python3, cv2, archlinux ver
+        cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
         if cnts != []:
             #start_time = time.time()
@@ -107,16 +87,6 @@ class Camara_obj(object):
 
         return frame_cropped, frameDelta, thresh, 0#threshErosion
                         
-#        thresh = cv2.threshold(self.first_image, 20, 255, cv2.THRESH_BINARY)[1]
-#        # dilate image to "see" more
-#
-#        # mask applied to image
-#        res = cv2.bitwise_and(original_image , original_image, mask = thresh)
-#
-#        #resets initial image
-#        #self.first_image = None
-#
-#        return res
     def findBrightness(self, frame):
         try:
             if frame == None:
@@ -134,164 +104,146 @@ class Camara_obj(object):
         return avg
 
     def view(self):
-        while 1:
-            try:
-                if len(sys.argv)>1:
-                    self.host = sys.argv[1]
-
-                hoststr = 'http://' + self.host + '/video'
-                print('Streaming ' + hoststr)
-
-                stream=urllib2.urlopen(hoststr)
-                break
-            except:
-                print("NO DATA FOR: {}".format(self.cam_name))
-                return
-
-        bytes=''
+        hoststr = 'http://' + self.host + '/video'
+        stream = cv2.VideoCapture(hoststr)
         frame_counter = 0
         elapsed_time = 0
         text_overlay = 0
         start_time = time.time()
+
         while 1:
-            # Decoding stream
-            bytes+=stream.read(1024)
-            a = bytes.find('\xff\xd8')
-            b = bytes.find('\xff\xd9')
-            if a!=-1 and b!=-1:
-                jpg = bytes[a:b+2]
-                bytes= bytes[b+2:]
-                # image aquisition
-                i = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8),cv2.IMREAD_COLOR)
-                # settings for FPS counter
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                if elapsed_time >= 1.0:
-                    # sets frames to overlay variable
-                    text_overlay = frame_counter / (time.time() - start_time)
-                    frame_counter = 0
-                    start_time = time.time()
-                    elapsed_time = 0
+            ret, frame = stream.read()
 
-                ### keep track of elapsed time for frame counter
-                end_time = start_time - time.time()
-                elapsed_time -= end_time
-                frame_counter += 1
+            # font settings for FPS counter
+            font = cv2.FONT_HERSHEY_SIMPLEX
 
-                if self.applyFilters:
-                    # returns applied filters
-                    # original image, frameDelta, Threshold images
-                    i, fd, t, threshErosion = self.display_motion(i)
+            ### keep track of elapsed time for frame counter
+            if elapsed_time >= 1.0:
+                # sets frames to overlay variable
+                text_overlay = frame_counter / (time.time() - start_time)
+                frame_counter = 0
+                start_time = time.time()
+                elapsed_time = 0
 
-                # sets text over image
-                cv2.putText(i,'{}'.format(int(text_overlay)),(5,50), font, 1,(0,255,0),2,cv2.LINE_AA)
-                # Displays original frame
-                cv2.imshow(self.cam_name, i)
+            end_time = start_time - time.time()
+            elapsed_time -= end_time
+            frame_counter += 1
 
-                # toggleble filters display
-                if self.applyFilters:
-                    if self.showDelta:
-                        cv2.imshow('Delta', fd)
-                    if self.showThresh:
-                        cv2.imshow('Thresh', t)
-                    if self.showThreshErosion:
-                        cv2.imshow('Thresh Erosion', threshErosion)
+            if self.imageFilterToggle:
+                # returns applied filters
+                # original image, frameDelta, Threshold images
+                frame, fd, t, threshErosion = self.display_motion(frame)
+
+            # sets text over image
+            cv2.putText(frame,'{}'.format(int(text_overlay)),(5,50), font, 1,(0,255,0),2,cv2.LINE_AA)
+            # Displays original frame
+            cv2.imshow(self.cam_name, frame)
+
+            # toggleble filters display
+            if self.imageFilterToggle:
+                if self.showDelta:
+                    cv2.imshow('Delta', fd)
+                if self.showThresh:
+                    cv2.imshow('Thresh', t)
+                if self.showThreshErosion:
+                    cv2.imshow('Thresh Erosion', threshErosion)
 
 
-                # press "q" to terminate program
-                key = cv2.waitKey(33) & 0xFF
-                if key == ord('q'):
-                    exit(0)
+            # press "q" to terminate program
+            key = cv2.waitKey(33) & 0xFF
+            if key == ord('q'):
+                exit(0)
 
-                # toggles thresh image displayed
-                elif key == ord('t'):
-                    if self.showThresh:
-                        self.showThresh = 0
-                        try:
-                            cv2.destroyWindow('Thresh')
-                        except:
-                            pass
-                    else:
-                        self.showThresh = 1
+            # toggles thresh image displayed
+            elif key == ord('t'):
+                if self.showThresh:
+                    self.showThresh = 0
+                    try:
+                        cv2.destroyWindow('Thresh')
+                    except:
+                        pass
+                else:
+                    self.showThresh = 1
 
-                # toggles Delta image displayed
-                elif key == ord('d'):
-                    if self.showDelta:
-                        self.showDelta = 0
-                        try:
-                            cv2.destroyWindow('Delta')
-                        except:
-                            pass
-                    else:
-                        self.showDelta = 1
-                        
-                # toggles threshErosion image displayed
-                elif key == ord('e'):
-                    if self.showThreshErosion:
-                        self.showThreshErosion = 0
-                        try:
-                            cv2.destroyWindow('Thresh Erosion')
-                        except: 
-                            pass
-                    else:
-                        self.showThreshErosion = 1
+            # toggles Delta image displayed
+            elif key == ord('d'):
+                if self.showDelta:
+                    self.showDelta = 0
+                    try:
+                        cv2.destroyWindow('Delta')
+                    except:
+                        pass
+                else:
+                    self.showDelta = 1
+                    
+            # toggles threshErosion image displayed
+            elif key == ord('e'):
+                if self.showThreshErosion:
+                    self.showThreshErosion = 0
+                    try:
+                        cv2.destroyWindow('Thresh Erosion')
+                    except: 
+                        pass
+                else:
+                    self.showThreshErosion = 1
 
-                # keys for Contour settings
-                elif key == ord('='):
-                    self.contourAreaValue += 1
+            # keys for Contour settings
+            elif key == ord('='):
+                self.contourAreaValue += 1
+                print("Contour Area:{}".format(self.contourAreaValue))
+            elif key == ord('-'):
+                if self.contourAreaValue >= 5:
+                    self.contourAreaValue -= 5
                     print("Contour Area:{}".format(self.contourAreaValue))
-                elif key == ord('-'):
-                    if self.contourAreaValue >= 5:
-                        self.contourAreaValue -= 5
-                        print("Contour Area:{}".format(self.contourAreaValue))
 
-                # keys for thresh settings
-                elif key == ord(']'):
-                    self.thresholdValue += 1
+            # keys for thresh settings
+            elif key == ord(']'):
+                self.thresholdValue += 1
+                print("Thresh:{}".format(self.thresholdValue))
+            elif key == ord('['):
+                if self.thresholdValue >= 1:
+                    self.thresholdValue -= 1
                     print("Thresh:{}".format(self.thresholdValue))
-                elif key == ord('['):
-                    if self.thresholdValue >= 1:
-                        self.thresholdValue -= 1
-                        print("Thresh:{}".format(self.thresholdValue))
 
-                # keys for kernel
-                elif key == ord('i'):
-                    self.kernelValue += 1
+            # keys for kernel
+            elif key == ord('i'):
+                self.kernelValue += 1
+                print("Kernel:{}".format(self.kernelValue))
+
+            elif key == ord('k'):
+                # negative dimensions not allowed
+                if self.kernelValue != 0:
+                    self.kernelValue -= 1
                     print("Kernel:{}".format(self.kernelValue))
 
-                elif key == ord('k'):
-                    # negative dimensions not allowed
-                    if self.kernelValue != 0:
-                        self.kernelValue -= 1
-                        print("Kernel:{}".format(self.kernelValue))
+            elif key == ord('p'):
+                print("\nContour Area:{}\nThreshold:{}\nKernel:{}".format(self.contourAreaValue, self.thresholdValue,self.kernelValue))
 
-                elif key == ord('p'):
-                    print("\nContour Area:{}\nThreshold:{}\nKernel:{}".format(self.contourAreaValue, self.thresholdValue,self.kernelValue))
+            elif key == ord('f'):
+                if self.imageFilterToggle == 0:
+                    self.imageFilterToggle = 1
+                    print(f"Filters {self.imageFilterToggle}")
+                else:
+                    self.imageFilterToggle = 0
+                    print(f"Filters {self.imageFilterToggle}")
 
-                elif key == ord('f'):
-                    if self.applyFilters == 0:
-                        self.applyFilters = 1
-                        print("Filters {}".format(self.applyFilters))
-                    else:
-                        self.applyFilters = 0
-                        print("Filters {}".format(self.applyFilters))
+            # Prints brightness value of current single frame
+            elif key == ord('b'):
+                print("Frame Average Brightness:{}".format(self.findBrightness(frame)))
 
-                # Prints brightness value of current single frame
-                elif key == ord('b'):
-                    print("Frame Average Brightness:{}".format(self.findBrightness(i)))
-
-                # moving frames ROI up down right left
-                # move top
-                elif key == ord('8'):
-                    pass
-                # bottom
-                elif key == ord('2'):
-                    pass
-                # right
-                elif key == ord('4'):
-                    pass
-                # left
-                elif key == ord('6'):
-                    pass
+            # moving frames ROI up down right left
+            # move top
+            elif key == ord('8'):
+                pass
+            # bottom
+            elif key == ord('2'):
+                pass
+            # right
+            elif key == ord('4'):
+                pass
+            # left
+            elif key == ord('6'):
+                pass
 
 
 def view_all():
@@ -300,23 +252,23 @@ def view_all():
 def main():
     cams = CamSettings.CAM_ADDRESSES
     # Prints the list of cams and it's corresponding index number
-    for i,key in enumerate(cams.keys()):
-        print("{} {}".format(i,key))
+    for frame,key in enumerate(cams.keys()):
+        print(f"{frame} {key} {cams[key]}")
 
-    # Get camara number
-    while 1:
-        try:
-            answer = int(raw_input("Choose Camera:\n"))
-            break
-        except Exception as e:
-            print("Not a number\n{}".format(e))
-
-#    answer = 0
+#    # Get camara number
+#    while 1:
+#        try:
+#            answer = int(input("Choose Camera:\n"))
+#            break
+#        except Exception as e:
+#            print("Not a number\n{}".format(e))
+#
+    answer = 0
     if answer == 'All':
         cams['All']()
     else:
-        for i, key in enumerate(cams.keys()):
-            if i == answer:
+        for frame, key in enumerate(cams.keys()):
+            if frame == answer:
                 answer = key
                 print(answer)
                 break
