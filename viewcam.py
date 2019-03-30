@@ -16,17 +16,17 @@ class Camara_obj(object):
         self.host = host
         self.first_image = None
         # use to toggle shown frames on screen
-        self.imageFilterToggle = 0
-        self.showDelta = 0
-        self.showThresh = 0
-        self.showThreshErosion = 0
+        self.imageFilterT = 0
+        self.showDeltaT = 0
+        self.showThreshT = 0
+        self.motionBoundryT = 0
         self.frame_top = 0
         self.frame_btm = 0
         self.frame_rgt = 0
         self.frame_lft = 0
-        # settings 
-        self.contourAreaValue = 90
-        self.thresholdValue = 50
+        # Default settings 
+        self.contourAreaValue = 50
+        self.thresholdValue = 20
         self.kernelValue = 1
         self.quality_toggle = False
 
@@ -41,51 +41,54 @@ class Camara_obj(object):
         resized = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
         return resized
 
-    def display_motion(self, frame):
+    def display_filters(self, frame):
         """ should return 4 variables
             1st one should be the frame to dipslay, 
             2nd frameDelta image
-            3rd thresh image, 4th threshErosion """
-        # crop top text off frame off
-        # to avoid motion detection from time stamp
-        frame_cropped = frame[25::,:] # Crop from x, y, w, h -> 100, 200, 300, 400
+            3rd thresh image """
+        if self.motionBoundryT:
+            # crop top text off frame off
+            # to avoid motion detection from time stamp
+            frame_cropped = frame[25::,:] # Crop from x, y, w, h -> 100, 200, 300, 400
 
-        gray = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2GRAY)
-        #gray = cv2.GaussianBlur(gray, (21, 21), 0)
+            gray = cv2.cvtColor(frame_cropped, cv2.COLOR_BGR2GRAY)
+            #gray = cv2.GaussianBlur(gray, (21, 21), 0)
 
-        # sets first frame to compare against another frame for motion
-        if self.first_image is None:
+            # sets first frame to compare against another frame for motion
+            if self.first_image is None:
+                self.first_image = gray
+                return frame, 0, 0
+
+            # checks both images are of same size
+            if self.first_image.shape != gray.shape:
+                self.first_image = gray
+                # return current frame to stop from comparing 2 diff size images
+                return frame, 0, 0 
+
+            # compute the absolute difference between the current frame and first frame
+            frameDelta = cv2.absdiff(self.first_image, gray)
+
+            # Must set new first_image again for next one to compare against
             self.first_image = gray
-            return frame, 0, 0, 0
+            #                                  25 normal
+            thresh = cv2.threshold(frameDelta, self.thresholdValue, 255, cv2.THRESH_BINARY)[1]
+            # works with python3, cv2, archlinux ver
+            cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 
-        # checks both images are of same size
-        if self.first_image.shape != gray.shape:
-            self.first_image = gray
-            # return current frame to stop from comparing 2 diff size images
-            return frame, 0, 0, 0
-
-        # compute the absolute difference between the current frame and first frame
-        frameDelta = cv2.absdiff(self.first_image, gray)
-
-        # Must set new first_image again for next one to compare against
-        self.first_image = gray
-        #                                  25 normal
-        thresh = cv2.threshold(frameDelta, self.thresholdValue, 255, cv2.THRESH_BINARY)[1]
-        # works with python3, cv2, archlinux ver
-        cnts,_ = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-
-        if cnts != []:
-            #start_time = time.time()
-            for cnt in cnts:
-                #print(cv2.contourArea(cnt))
-                if cv2.contourArea(cnt) >= self.contourAreaValue:
+            if cnts != []:
+                #start_time = time.time()
+                for cnt in cnts:
                     #print(cv2.contourArea(cnt))
-                    # bound rect
-                    x, y, w, h = cv2.boundingRect(cnt)
-                    # draw contours
-                    cv2.rectangle(frame_cropped, (x, y), (x+w, y+h), (0, 255, 0), 1)
+                    if cv2.contourArea(cnt) >= self.contourAreaValue:
+                        #print(cv2.contourArea(cnt))
+                        # bound rect
+                        x, y, w, h = cv2.boundingRect(cnt)
+                        # draw contours
+                        cv2.rectangle(frame_cropped, (x, y), (x+w, y+h), (0, 255, 0), 1)
 
-        return frame_cropped, frameDelta, thresh, 0#threshErosion
+            return frame_cropped, frameDelta, thresh
+        else:
+            return frame, 0, 0
                         
     def findBrightness(self, frame):
         try:
@@ -129,63 +132,72 @@ class Camara_obj(object):
             elapsed_time -= end_time
             frame_counter += 1
 
-            if self.imageFilterToggle:
+            # toggleble filters display
+            if self.imageFilterT:
                 # returns applied filters
                 # original image, frameDelta, Threshold images
-                frame, fd, t, threshErosion = self.display_motion(frame)
+                frame, fd, t = self.display_filters(frame)
+
+                if self.showDeltaT:
+                    cv2.imshow('Delta', fd)
+                if self.showThreshT:
+                    cv2.imshow('Thresh', t)
 
             # sets text over image
             cv2.putText(frame,'{}'.format(int(text_overlay)),(5,50), font, 1,(0,255,0),2,cv2.LINE_AA)
             # Displays original frame
             cv2.imshow(self.cam_name, frame)
 
-            # toggleble filters display
-            if self.imageFilterToggle:
-                if self.showDelta:
-                    cv2.imshow('Delta', fd)
-                if self.showThresh:
-                    cv2.imshow('Thresh', t)
-                if self.showThreshErosion:
-                    cv2.imshow('Thresh Erosion', threshErosion)
-
-
             # press "q" to terminate program
             key = cv2.waitKey(33) & 0xFF
             if key == ord('q'):
                 exit(0)
 
+            elif key == ord('m'):
+                if self.motionBoundryT:
+                    self.motionBoundryT = 0
+                    print("Motion detection off")
+                    self.showDeltaT = 0
+                    self.showThreshT = 0
+                    try:
+                        cv2.destroyWindow('Thresh')
+                        cv2.destroyWindow('Delta')
+                    except:
+                        pass
+                    #self.first_image = None
+                else:
+                    if self.imageFilterT:
+                        self.motionBoundryT = 1
+                        print("Motion will be displayed in green rectangles.")
+                    else:
+                        print("Filter Toggle Must be on!\nPress [f]")
+
             # toggles thresh image displayed
-            elif key == ord('t'):
-                if self.showThresh:
-                    self.showThresh = 0
+            elif key == ord('t') and self.imageFilterT:
+                if self.showThreshT:
+                    self.showThreshT = 0
+                    self.motionBoundryT = 0
                     try:
                         cv2.destroyWindow('Thresh')
                     except:
                         pass
                 else:
-                    self.showThresh = 1
+                    self.showThreshT = 1
+                    self.motionBoundryT = 1
 
             # toggles Delta image displayed
-            elif key == ord('d'):
-                if self.showDelta:
-                    self.showDelta = 0
+            elif key == ord('d') and self.imageFilterT:
+                if self.showDeltaT:
+                    self.showDeltaT = 0
+                    self.motionBoundryT = 0
                     try:
                         cv2.destroyWindow('Delta')
                     except:
                         pass
                 else:
-                    self.showDelta = 1
+                    self.showDeltaT = 1
+                    self.motionBoundryT = 1
                     
-            # toggles threshErosion image displayed
-            elif key == ord('e'):
-                if self.showThreshErosion:
-                    self.showThreshErosion = 0
-                    try:
-                        cv2.destroyWindow('Thresh Erosion')
-                    except: 
-                        pass
-                else:
-                    self.showThreshErosion = 1
 
             # keys for Contour settings
             elif key == ord('='):
@@ -220,12 +232,26 @@ class Camara_obj(object):
                 print("\nContour Area:{}\nThreshold:{}\nKernel:{}".format(self.contourAreaValue, self.thresholdValue,self.kernelValue))
 
             elif key == ord('f'):
-                if self.imageFilterToggle == 0:
-                    self.imageFilterToggle = 1
-                    print(f"Filters {self.imageFilterToggle}")
+                if self.imageFilterT == 0:
+                    self.imageFilterT = 1
+                    print("""
+                        Filters ACTIVATED
+                            Thresh[t]
+                            Delta[d]
+                            Motion Detection[m]
+                        DEACTIVATE[f]""")
+
                 else:
-                    self.imageFilterToggle = 0
-                    print(f"Filters {self.imageFilterToggle}")
+                    self.motionBoundryT = 0
+                    self.imageFilterT = 0
+                    self.showThreshT = 0
+                    self.showDeltaT = 0
+                    try:
+                        cv2.destroyWindow('Thresh')
+                        cv2.destroyWindow('Delta')
+                    except:
+                        pass
+                    print("Filters DEACTIVATED")
 
             # Prints brightness value of current single frame
             elif key == ord('b'):
@@ -255,15 +281,15 @@ def main():
     for frame,key in enumerate(cams.keys()):
         print(f"{frame} {key} {cams[key]}")
 
-#    # Get camara number
-#    while 1:
-#        try:
-#            answer = int(input("Choose Camera:\n"))
-#            break
-#        except Exception as e:
-#            print("Not a number\n{}".format(e))
-#
-    answer = 0
+    # Get camara number
+    while 1:
+        try:
+            answer = int(input("Choose Camera:\n"))
+            break
+        except Exception as e:
+            print("Not a number\n{}".format(e))
+
+    #answer = 0
     if answer == 'All':
         cams['All']()
     else:

@@ -9,8 +9,7 @@ DATABASE_FILE = '/frames.db'
 #SAVE_PATH = '/run/user/1000/gvfs/sftp:host=192.168.0.100,user=pi/home/pi/usb/user/Juan/Media/sec.cam'
 SAVE_PATH = '/run/user/1000/gvfs/sftp:host=cr48,user=jj/home/jj/cam'
 
-CAM_ADDRESSES = {'lg':'192.168.1.229:8080', 
- 'lr':'192.168.1.229:8080',  
+CAM_ADDRESSES = {'lr':'192.168.1.229:8080', 
  'room': '192.168.1.152:8080'}
 
 
