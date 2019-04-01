@@ -5,6 +5,7 @@ import threading
 import time
 import datetime
 import CamSettings 
+import os
 
 # resized image percentage
 size = 100
@@ -233,13 +234,13 @@ class Camara_obj(object):
 
             elif key == ord('f'):
                 if self.imageFilterT == 0:
+                    os.system('clear')
                     self.imageFilterT = 1
-                    print("""
-                        Filters ACTIVATED
-                            Thresh[t]
-                            Delta[d]
-                            Motion Detection[m]
-                        DEACTIVATE[f]""")
+                    print("Filter View: ACTIVATED"
+                        "\nAvailable:\n    Thresh[t]"
+                        "\n    Delta[d]"
+                        "\n    Motion Detection[m]"
+                        "\n\nto DEACTIVATE press[f]")
 
                 else:
                     self.motionBoundryT = 0
