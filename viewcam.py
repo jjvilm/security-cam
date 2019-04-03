@@ -4,7 +4,7 @@ import numpy as np
 import threading
 import time
 import datetime
-import CamSettings 
+import Settings 
 import os
 
 # resized image percentage
@@ -313,12 +313,12 @@ def main():
     if answer == 'All':
         cams['All']()
     else:
-        for frame, key in enumerate(cams.keys()):
-            if frame == answer:
+        for i, key in enumerate(cams.keys()):
+            if i == answer:
                 answer = key
                 print(answer)
                 break
-        # runs the choses camara
-        cam = Camara_obj(answer, cams[answer])
+        # runs the choses camara  <user:pass>       <ip:port>
+        cam = Camara_obj(answer, cams[answer][0] + cams[answer][1])
         cam.run_thread()
 main()
