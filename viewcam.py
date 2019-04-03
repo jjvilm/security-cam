@@ -109,14 +109,27 @@ class Camara_obj(object):
 
     def view(self):
         hoststr = 'http://' + self.host + '/video'
-        stream = cv2.VideoCapture(hoststr)
+        #stream = cv2.VideoCapture(hoststr)
+
         frame_counter = 0
         elapsed_time = 0
         text_overlay = 0
         start_time = time.time()
 
         while 1:
-            ret, frame = stream.read()
+            # checks to see if frame to display
+            try:
+                if frame.any() == None:
+                    pass
+            except Exception as e:
+                time.sleep(3)
+                stream = cv2.VideoCapture(hoststr)
+                _, frame = stream.read()
+                continue
+            else:
+                _, frame = stream.read()
+
+
 
             # font settings for FPS counter
             font = cv2.FONT_HERSHEY_SIMPLEX
@@ -137,17 +150,23 @@ class Camara_obj(object):
             if self.imageFilterT:
                 # returns applied filters
                 # original image, frameDelta, Threshold images
-                frame, fd, t = self.display_filters(frame)
+                try:
+                    frame, fd, t = self.display_filters(frame)
 
-                if self.showDeltaT:
-                    cv2.imshow('Delta', fd)
-                if self.showThreshT:
-                    cv2.imshow('Thresh', t)
+                    if self.showDeltaT:
+                        cv2.imshow('Delta', fd)
+                    if self.showThreshT:
+                        cv2.imshow('Thresh', t)
+                except:
+                    continue
 
             # sets text over image
             cv2.putText(frame,'{}'.format(int(text_overlay)),(5,50), font, 1,(0,255,0),2,cv2.LINE_AA)
-            # Displays original frame
-            cv2.imshow(self.cam_name, frame)
+            try:
+                # Displays original frame
+                cv2.imshow(self.cam_name, frame)
+            except:
+                continue
 
             # press "q" to terminate program
             key = cv2.waitKey(33) & 0xFF
@@ -279,8 +298,8 @@ def view_all():
 def main():
     cams = CamSettings.CAM_ADDRESSES
     # Prints the list of cams and it's corresponding index number
-    for frame,key in enumerate(cams.keys()):
-        print(f"{frame} {key} {cams[key]}")
+    for i,key in enumerate(cams.keys()):
+        print(f"{i} {key}")
 
     # Get camara number
     while 1:
