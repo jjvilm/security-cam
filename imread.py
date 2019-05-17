@@ -4,9 +4,9 @@ import cv2
 import os
 import time
 from datetime import datetime
-import commands
+#import commands
 import moddb
-from CamSettings import SAVE_PATH
+from Settings import SAVE_PATH
 
 
 class Rff():
@@ -175,6 +175,7 @@ class Rff():
 
     def main(self):
         self.create_window_settings()
+        bad_frame_error_count = 0
 
         while True:
             skips = self.frame_step
@@ -209,8 +210,12 @@ class Rff():
                     #adding frame number as overlay
                     cv2.putText(frame,'{}/{} {}'.format(loop_frame_n, self.t_n_frames, self.set_day),(1,30), self.font, 0.5,(0,255,0),1,cv2.LINE_AA)
                     cv2.imshow("Frames",frame)
+                    bad_frame_error_count = 0
                 except Exception as e:
                     print(e,'\nBAD Frame')
+                    bad_frame_error_count += 1
+                    if bad_frame_error_count == 2:
+                        return
                     continue
 
                 key = cv2.waitKey(33) & 0xFF

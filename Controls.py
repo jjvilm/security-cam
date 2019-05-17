@@ -52,35 +52,35 @@ if __name__ == "__main__":
     #setSett(url, 'zoom','2')
     #setSett(url, 'quality', '15')
     #setSett(url, 'night_vision', 'on')
-    quality = 25
-    sleep = .1
+    quality = 75
+    sleep = .3
     counts = 100 
 
     setSett(url, 'quality', str(quality))
     #exit(0)
-    zoom = 1
-    print('this')
-    while counts >= 1:
-        while zoom <= 25:
-            print(zoom)
-            setSett(url, 'zoom', str(zoom))
-            zoom += 1
-            time.sleep(sleep)
-
-        setSett(url, 'quality', str(99))
-        time.sleep(random.randrange(1,15))
-
-        while zoom >= 1:
-            print(zoom)
-            setSett(url, 'zoom', str(zoom))
-            zoom -= 1
-            time.sleep(sleep)
-
-        setSett(url, 'quality', str(quality))
-        time.sleep(60)
-        counts -= 1
-
-
-
-
-
+    zoom = 0
+    setSett(url, 'zoom', str(zoom))
+#    while counts >= 1:
+#        while zoom <= 25:
+#            print(zoom)
+#            setSett(url, 'zoom', str(zoom))
+#            zoom += 1
+#            time.sleep(sleep)
+#
+#        #setSett(url, 'quality', str(99))
+#        time.sleep(random.randrange(2,7))
+#
+#        while zoom >= 1:
+#            print(zoom)
+#            setSett(url, 'zoom', str(zoom))
+#            zoom -= 1
+#            time.sleep(sleep)
+#
+#        #setSett(url, 'quality', str(quality))
+#        time.sleep(3)
+#        counts -= 1
+#
+#
+#
+#
+#

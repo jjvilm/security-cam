@@ -4,17 +4,17 @@ import numpy as np
 import threading
 import time
 import datetime
-import Settings 
+from Settings import CAM_ADDRESSES
 import os
 
-# resized image percentage
-size = 100
 
 class Camara_obj(object):
     turn_lock = threading.Lock()
     def __init__(self, cam_name, host):
         self.cam_name = cam_name
         self.host = host
+        # resized image percentage
+        self.im_size = 300
         self.first_image = None
         # use to toggle shown frames on screen
         self.imageFilterT = 0
@@ -37,10 +37,10 @@ class Camara_obj(object):
             cam_thread.start()
 
     def resizeim(self,frame):
-        r = float(size) / frame.shape[1]
-        dim = (int(size), int(frame.shape[0] * r))
-        resized = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
-        return resized
+        r = float(self.im_size) / frame.shape[1]
+        dim = (int(self.im_size), int(frame.shape[0] * r))
+        frame = cv2.resize(frame, dim, interpolation = cv2.INTER_AREA)
+        return frame
 
     def display_filters(self, frame):
         """ should return 4 variables
@@ -164,6 +164,7 @@ class Camara_obj(object):
             cv2.putText(frame,'{}'.format(int(text_overlay)),(5,50), font, 1,(0,255,0),2,cv2.LINE_AA)
             try:
                 # Displays original frame
+                frame = self.resizeim(frame)
                 cv2.imshow(self.cam_name, frame)
             except:
                 continue
@@ -172,6 +173,8 @@ class Camara_obj(object):
             key = cv2.waitKey(33) & 0xFF
             if key == ord('q'):
                 exit(0)
+            elif key == ord('s'):
+                self.im_size = int(input("New size:\n"))
 
             elif key == ord('m'):
                 if self.motionBoundryT:
@@ -296,7 +299,7 @@ def view_all():
     pass
 
 def main():
-    cams = CamSettings.CAM_ADDRESSES
+    cams = CAM_ADDRESSES
     # Prints the list of cams and it's corresponding index number
     for i,key in enumerate(cams.keys()):
         print(f"{i} {key}")

@@ -1,4 +1,3 @@
-
 #!/usr/bin/python2
 import cv2 
 import urllib2
@@ -26,8 +25,8 @@ class Cam(object):
         self.firstFrame = None
         self.turn = threading.Lock()
         self.save_folder = SAVE_PATH
-        self.contour_area_value = 250
-        self.frame_threshold_value = 100
+        self.contour_area_value = 100
+        self.frame_threshold_value = 25
         self.save_format = '.jpg'
 
         #object_process = multiprocessing.Process(target=self.run_motion_detection)
@@ -221,6 +220,7 @@ def stop_threads():
 
 # asks to press enter to stop threads
 stop_thread = threading.Thread(target=stop_threads)
+stop_thread.daemon = True
 stop_thread.start()
 
 cams_dict = CAM_ADDRESSES

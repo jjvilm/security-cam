@@ -1,5 +1,5 @@
 import sqlite3
-from CamSettings import SAVE_PATH, DATABASE_FILE
+from Settings import SAVE_PATH, DATABASE_FILE
 
 
 class db():
